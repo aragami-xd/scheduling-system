@@ -1,0 +1,4 @@
+logbook time!
+
+The plan:
+I'll somewhat stick to basic approach given in the problem description of "when", "where" and "how". However, I'll generate when and where at the same time

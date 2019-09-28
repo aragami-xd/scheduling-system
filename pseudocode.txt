@@ -1,0 +1,35 @@
+for (int i=0; i<8; i++)
+{
+	if (preferenece[m][i] != 0) {
+		callfunction(preferenece, )
+	}
+}
+
+
+loop 0-5 for 5 days
+	loop 0-8 for 8 hours a day
+		if (preferenece[i][m] == 0)
+			loop 0-? for courses
+				if (lecturer teaches that course && still have hour left && haven't taught that course today)
+					call function?
+
+//recursion or iteration?
+recursion: slower and less efficient, but easier to generate all the different permutations
+iteration: faster and much more efficient, but much harder to generate all the different permutations
+
+
+
+using map or vector of maps instead? map a lecturer with all the hours they can teach that a week
+or tuple?
+map<string, int> teachingHours;			//string = lecturer name + hour, int = course to take
+
+
+eliminate room: probably the easiest part
+loop 0-40 for 40 hours/week
+	if > 2 classes runnning at a time -> invalid:
+		return;
+	else:
+		move on to checking preference
+
+
+
