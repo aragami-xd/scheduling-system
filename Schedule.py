@@ -91,6 +91,7 @@ class Schedule:
 				pass
 			pass
 		
+		hour[courseNo] -= 1
 		self.generateLecturer(teachingCourses, hour, preference, session + 2, lecturerNo, timeTable)
 
 		

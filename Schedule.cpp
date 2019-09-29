@@ -1,4 +1,4 @@
-#include "ScheduleWhen.cpp"
+// include "ScheduleWhen.cpp"
 
 #include <iostream>
 #include <string>
@@ -95,9 +95,38 @@ public:
 
 
 
+	//this fucntion will determine if the lecturer can and will teach 2 hour session or not
 	void generateTeach(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, vector< vector<int> > timeTable)
 	{
 		timeTable[lecturerNo][session] = courseNo;			//since you'll have to teach at that session, modify the time table at session to mark that you'll teach at that time
+		hours[courseNo]--;
+		generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable);
+
+		// these if conditions will see if the lecturer can teach two hour sessions or not
+		if (preference[lecturerNo][session + 1] != -1 && hours[courseNo] > 1) {		// if lecturer is free next hour, he/she can teach 2 hours in a row
+			if (session % 8 == 7) {			// if the next hour is end of day (or, this session is the last hour of the day), then do nothing
+				return;	
+			}
+
+			else if (session % 8 == 6) {		// if the next hour is the last hour of the day, then just move on to the next session (i.e. start of new day)
+				hours[courseNo]--;
+				timeTable[lecturerNo][session + 1] = courseNo;
+				generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable);
+
+				hours[courseNo]++;
+				timeTable[lecturerNo][session + 1] = -1;			// undo the changes to the timetable since you'll need it again
+
+			} else {							// if the next hour is not the last hour of the day, then you have to jump 1 more hour as teaching break
+				hours[courseNo]--;
+				timeTable[lecturerNo][session + 1] = courseNo;
+				generateLecturer(teachingCourses, hours, preference, session + 3, lecturerNo, timeTable);
+
+				hours[courseNo]++;
+				timeTable[lecturerNo][session + 1] = -1;
+			
+			}
+		}
+		
 
 	}
 
