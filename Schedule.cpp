@@ -15,7 +15,8 @@ private:
 	vector<int> roomsLayout;
 
 public:
-	void setupTimetable(int noLecturers)			//preocuppy the table with a bunch of -1
+	//setting up a timetable with full of -1
+	void setupTimetable(int noLecturers)
 	{
 		timetable.clear();
 		for (int i=0; i<noLecturers; i++) {
@@ -34,7 +35,8 @@ public:
 	}
 
 
-	void setupRoom(int rooms)				// reset the number of available rooms throughout the day
+	//setting up the number of rooms remaining throughout the day
+	void setupRoom(int rooms)
 	{
 		roomsLayout.clear();
 		for (int i=0; i<8; i++) {
@@ -42,6 +44,12 @@ public:
 		}
 	}
 
+
+	//session will point out which session of the week the lecturer is teaching
+	void generateLecturer(vector<int> hours, int lecturerNo, int session, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference)
+	{
+		
+	}
 
 
 	void generate(int rooms, int courses, vector<int> hours, vector<string> names, vector<string> lecturers, vector< vector<int> > binaryMapping, vector< vector<int> > preferences)

@@ -42,14 +42,17 @@ for day in range 5:		//5 days a week
 generate as binary tree?
 
 lecturer 1
-	///
+	///(hour of the day)
 	free to teach? yes, move one. no, stop
 		teach or not? yes, move on. no, stop
 			///
 			teach course 1 or not? yes, mod to course 1 then move on. no, move on
-				teach course 2 or not? yes, mod to course 2 then move one. no, move on
-					... do the same for all the courses that that lecturer teach
-					(will it blow the stack? looks like it will)
+				if next hour is free, teach 1 hour or 2 hours? if 1, sub 1, else, sub 2. subtract remaining hours with that value
+				(if the next hour is not lunch break or end of day, change it to busy so you cannot teach. lunch % 8 = 3. end of day % 8 = 0)
+					///
+					do the same with every other courses. if you get to the last day of the week and you haven't taught every courses yet, the option is out
+						///
+
 			
 
 
