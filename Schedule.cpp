@@ -44,19 +44,6 @@ public:
 
 
 
-	void generatePerDay(vector<string> &lecturers, vector<int> hours, vector< vector<int> > &binaryMapping, vector< vector<int> > &preference)
-	{
-		for (int i=0; i<5; i++) {
-
-		}
-	} 
-
-	void generatePerHour(vector<string> &lecturers, vector<int> hours, vector< vector<int> > &binaryMapping, vector< vector<int> > &preference, int day) {
-		for (int i=0; i<8; i++) {
-		}
-	}
-
-
 	void generate(int rooms, int courses, vector<int> hours, vector<string> names, vector<string> lecturers, vector< vector<int> > binaryMapping, vector< vector<int> > preferences)
 	{
 		setupTimetable(lecturers.size());		//setup the timetable

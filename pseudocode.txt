@@ -33,3 +33,26 @@ loop 0-40 for 40 hours/week
 
 
 
+for day in range 5:		//5 days a week
+	for session in range 8:		//8 hours a day
+		for duration in range min(hour + 1, 3):		//either 0 hour, 1 hour or 2 hours being taught that day, as long as the course have enough time for it
+
+
+
+generate as binary tree?
+
+lecturer 1
+	///
+	free to teach? yes, move one. no, stop
+		teach or not? yes, move on. no, stop
+			///
+			teach course 1 or not? yes, mod to course 1 then move on. no, move on
+				teach course 2 or not? yes, mod to course 2 then move one. no, move on
+					... do the same for all the courses that that lecturer teach
+					(will it blow the stack? looks like it will)
+			
+
+
+			
+
+
