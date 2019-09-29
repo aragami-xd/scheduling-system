@@ -27,6 +27,6 @@ int main()
 
 
 
-	schedule.setupTimetable(lecturers.size());
+	schedule.generate(rooms, courses, hours, names, lecturers, binaryMapping, preference);
 	// schedule.generateWhen(lecturers, hours, binaryMapping, preference);
 }

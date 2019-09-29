@@ -52,20 +52,6 @@ class Schedule:
 
 	#with a lecturer that teaches a certain course, see if they can teach more than one hour not ot
 	def generateTeach(self, teachingCourses, hour, preference, session, lecturerNo, courseNo, timeTable):
-		# #if the next hour is lunch break or end of day then they can only teach for 1 hour. else, they can teach either 1 or 2
-		# if (session + 1) % 8 != 0 or (session + 1) % 8 != 3:
-		# 	hour[courseNo] -= 1					#subtract 1 hour to that course and change the timetable
-		# 	timeTable[lecturerNo][session] = courseNo	
-		# 	self.generateLecturer(teachingCourses, hour, preference, session + 3, lecturerNo, timeTable)		#teachingBreak true, jump to the next free hour
-		# 	pass
-		
-		# # teaching 1 hour session
-		# hour[courseNo] -= 2				#subtract 2 hours to that course and change the timetable
-		# timeTable[lecturerNo][session] = courseNo
-		# timeTable[lecturerNo][session + 1] = courseNo
-		# self.generateLecturer(teachingCourses, hour, preference, session + 3, lecturerNo, timeTable)		#jump 3 hours to the next free session
-		# pass
-
 		
 		timeTable[lecturerNo][session] = courseNo			#modify the time table
 		#these if conditions will see if the lecturer can teach two hour sessions or not
@@ -115,9 +101,6 @@ def main():
 	# blankTimetable = [[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,],[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,],[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,],[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,]]
 	# hours = [2,3,2,4,2]
 	# # rooms = 2 
-	# # courses = 5 
-	# # names = ["ADSA", "EDC", "PSSD", "OOP", "CS"]
-	# lecturers = ["Cruz", "Minygu", "Cheryl", "Fred"]
 	
 	# teachingCourses = [[1,2],[1,3],[0],[4]]
 
@@ -127,8 +110,6 @@ def main():
 	hours = [2,3]
 	# rooms = 2 
 	# courses = 5 
-	# names = ["ADSA", "EDC", "PSSD", "OOP", "CS"]
-	# lecturers = ["Cruz", "Minygu"]
 	
 	teachingCourses = [[1],[0]]
 

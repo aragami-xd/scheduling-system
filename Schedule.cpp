@@ -11,27 +11,30 @@ using namespace std;
 class Schedule
 {
 private:
-	vector< vector<int> > timetable;
+	
 	vector<int> roomsLayout;
 
-public:
+
+
+
 	//setting up a timetable with full of -1
-	void setupTimetable(int noLecturers)
+	vector< vector<int> > generateGenericTimetable(int noLecturers)
 	{
-		timetable.clear();
+		vector< vector<int> > genericTimetable;
+
 		for (int i=0; i<noLecturers; i++) {
-			timetable.push_back({});
+			genericTimetable.push_back({});
 			for (int m=0; m<40; m++) {
-				timetable[i].push_back(-1);
+				genericTimetable[i].push_back(-1);
 			}
 		}
 
-		for (int i=0; i<timetable.size(); i++) {
-			for (int m=0; m<timetable[0].size(); m++) {
-				cout << timetable[i][m] << ", ";
-			}
-			cout << endl;
-		}
+		// for (int i=0; i<genericTimetable.size(); i++) {
+		// 	for (int m=0; m<genericTimetable[0].size(); m++) {
+		// 		cout << genericTimetable[i][m] << ", ";
+		// 	}
+		// 	cout << endl;
+		// }
 	}
 
 
@@ -43,6 +46,27 @@ public:
 			roomsLayout.push_back(rooms);
 		}
 	}
+
+
+	//create a vector of list of courses that a lecturer will teach
+	vector< vector<int> > generateTeachingCourses(vector< vector<int> > &binaryMapping)
+	{
+		vector< vector<int> > teachingCourses;
+
+		for (int i=0; i<binaryMapping[0].size(); i++) {			//all the lecturers
+			teachingCourses.push_back({});
+
+			for (int m=0; m<binaryMapping.size(); m++) {		//if the lecturer teaches that course, add to the list
+				if (binaryMapping[m][i] == 1) {
+					teachingCourses[i].push_back(m);
+				}
+			}
+		}
+
+		return teachingCourses;
+	}
+
+
 
 
 	//determining if the lecturer can teach at this session, and if can, decides to teach or not
@@ -75,6 +99,9 @@ public:
 
 
 
+
+
+
 	//if the lecturer decides to teach, which course to teach (since a lecturer can tech multiple courses)
 	void generateCourseToTeach(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, vector< vector<int> > timeTable)
 	{
@@ -92,6 +119,8 @@ public:
 			}
 		}
 	}
+
+
 
 
 
@@ -127,15 +156,18 @@ public:
 			}
 		}
 		
-
 	}
 
 
 
+
+
+public:
 	void generate(int rooms, int courses, vector<int> hours, vector<string> names, vector<string> lecturers, vector< vector<int> > binaryMapping, vector< vector<int> > preferences)
 	{
-		setupTimetable(lecturers.size());		//setup the timetable
-
+		vector< vector<int> > teachingCourses = generateTeachingCourses(binaryMapping);
+		vector< vector<int> > genericTimetable =generateGenericTimetable(lecturers.size());
+		generateLecturer(teachingCourses, hours, preferences, 0, 0, genericTimetable);
 
 	}
 	
