@@ -13,8 +13,8 @@ class Schedule:
 				for m in range(len(timeTable[i])):
 					print(timeTable[i][m], end ='')
 					pass
-			print(end='\n')
-			pass
+				print(end='\n')
+				pass
 
 		elif session >= 40:				#if all 40 hours have been checked, setup for the next lecturer
 			self.generateLecturer(teachingCourses, hour, preference, 0, lecturerNo + 1, timeTable)
@@ -85,7 +85,7 @@ class Schedule:
 				hour[courseNo] -= 2
 				timeTable[lecturerNo][session + 1] = courseNo
 				self.generateLecturer(teachingCourses, hour, preference, session + 3, lecturerNo, timeTable)
-				
+
 				hour[courseNo] += 2
 				timeTable[lecturerNo][session + 1] = -1
 				pass
