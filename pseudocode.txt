@@ -40,7 +40,6 @@ for day in range 5:		//5 days a week
 
 
 generate as binary tree?
-
 lecturer 1
 	///(hour of the day)
 	free to teach? yes, move one. no, stop
@@ -52,8 +51,8 @@ lecturer 1
 					///
 					do the same with every other courses. if you get to the last day of the week and you haven't taught every courses yet, the option is out
 						///
-
-			
+(yep, this one works)
+some small problem atm: options that doesn't teach all the 
 
 
 			

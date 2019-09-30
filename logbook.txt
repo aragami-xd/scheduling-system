@@ -1,4 +1,21 @@
 logbook time!
 
 The plan:
-I'll somewhat stick to basic approach given in the problem description of "when", "where" and "how". However, I'll generate when and where at the same time
+I'll somewhat stick to basic approach given in the problem description of "when", "where" and "how". For now, i'll solve the "when" first
+
+For the when, I'll have no other choice but to use recursion. I try to write some pseudocode using the iterative approach, but doesn't seem to work. For the recursion approach, I've thought of many different methods, but binary tree ended up being the only one that makes sense to me. So, this is my pseudocode I've written:
+
+lecturer 1
+	///check at a certain hour of the day
+	free to teach? yes, move on. no, stop
+		decides to teach or not? yes, move on. no, stop
+
+			/// check a certain course in the list of courses that that lecturer teaches
+			teach course 1 or not? yes, change the remaining hours of course 1 then move on. no, try with course 2,3... (the lecturer will have to teach the last course)
+				if next hour is free, teach 1 hour or 2 hours? subtract remaining hours with that value
+				(some conditions testing lunch break and end of the day will be here, but i'll figure that out later)
+
+					///jump back to lecturer
+					do the same with every other courses. if you get to the last day of the week and you haven't taught every courses yet, the option is out
+
+(hope that actually make sense)
