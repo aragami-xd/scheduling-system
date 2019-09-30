@@ -3,16 +3,13 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <map>
-#include <algorithm>
-#include <sstream>
+#include <utility>
 using namespace std;
 
 class Schedule
 {
 private:
-	
-	vector<int> roomsLayout;
+	int totalRooms;
 
 
 
@@ -31,15 +28,6 @@ private:
 		return genericTimetable;
 	}
 
-
-	//setting up the number of rooms remaining throughout the day
-	void setupRoom(int rooms)
-	{
-		roomsLayout.clear();
-		for (int i=0; i<8; i++) {
-			roomsLayout.push_back(rooms);
-		}
-	}
 
 
 	//create a vector of list of courses that a lecturer will teach
@@ -67,6 +55,7 @@ private:
 	//determining if the lecturer can teach at this session, and if can, decides to teach or not
 	void generateLecturer(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, vector< vector<int> > timeTable)
 	{
+		cout << "crash at generateLecturer" << endl;
 		if (lecturerNo >= preference.size()) {				//every lecturer has been generated
 			// for (int i=0; i<timeTable.size(); i++) {			//just print everything out for testing purposes
 			// 	for (int m=0; m<timeTable[i].size(); m++) {
@@ -84,10 +73,13 @@ private:
 				}
 			}
 
+			checkRoom(timeTable);			//check if the number of rooms allows for this timetable
+
 		} else if (session >= 40) {			//all 40 hours have been checked
 			generateLecturer(teachingCourses, hours, preference, 0, lecturerNo + 1, timeTable);
 
 		} else if (preference[lecturerNo][session] == 0) {			//if lecturer is not available for teaching at that session
+			cout << "lecturer cannot teach this session" << endl;
 			generateLecturer(teachingCourses, hours, preference, session + 1, lecturerNo, timeTable);
 			
 		} else {			//lecturer can teach in that session
@@ -108,6 +100,7 @@ private:
 	//if the lecturer decides to teach, which course to teach (since a lecturer can tech multiple courses)
 	void generateCourseToTeach(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, vector< vector<int> > timeTable)
 	{
+		cout << "crash at generateCourseToTeach" << endl;
 		// if there is no hour left to teach in this course
 		if (hours[courseNo] == 0) {		
 			generateCourseToTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo + 1, timeTable);
@@ -130,6 +123,7 @@ private:
 	//this fucntion will determine if the lecturer can and will teach 2 hour session or not
 	void generateTeach(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, vector< vector<int> > timeTable)
 	{
+		cout << "crash at generateTeach" << endl;
 		timeTable[lecturerNo][session] = teachingCourses[lecturerNo][courseNo];			//since you'll have to teach at that session, modify the time table at session to mark that you'll teach at that time
 		hours[courseNo]--;						//and subtract 1 to the remaining hour of that course
 		generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable);
@@ -157,29 +151,37 @@ private:
 
 
 
+	void checkRoom(vector< vector<int> > &timeTable) 
+	{
+		int counter = 0;
+		for (int i=0; i<timeTable[0].size(); i++) {				//check the timeTable and see if there are more than 'rooms' number of courses being taught at a time
+			for (int m=0; m<timeTable.size(); m++) {
+				if (timeTable[m][i] != -1) {
+					counter++;
+				}
+			}
+
+			if (counter > totalRooms) {
+				return;
+			}
+			counter = 0;
+		}
+
+		//next function here
+	}
+
+
+
 
 
 public:
 	void generate(int rooms, int courses, vector<int> hours, vector<string> names, vector<string> lecturers, vector< vector<int> > binaryMapping, vector< vector<int> > preferences)
 	{
+		totalRooms = rooms;
 		vector< vector<int> > teachingCourses = generateTeachingCourses(binaryMapping);
-		// for (int i=0; i<teachingCourses.size(); i++) {
-		// 	for (int m=0; m<teachingCourses[i].size(); m++) {
-		// 		cout << teachingCourses[i][m] << ", ";
-		// 	}
-		// 	cout << endl;
-		// }
-		// cout << endl;
-
 		vector< vector<int> > genericTimetable = generateGenericTimetable(lecturers.size());
-		// for (int i=0; i<genericTimetable.size(); i++) {
-		// 	for (int m=0; m<genericTimetable[0].size(); m++) {
-		// 		cout << genericTimetable[i][m] << ", ";
-		// 	}
-		// 	cout << endl;
-		// }
 
-		generateLecturer(teachingCourses, hours, preferences, 0, 0, genericTimetable);
+		generateLecturer(teachingCourses, hours, preferences, 0, 0, genericTimetable);			//the start of it all
 
 	}
 	
