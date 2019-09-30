@@ -9,12 +9,7 @@ class Schedule:
 	#with one lecturer, see if they can teach at a certain hour or not. if they can, see if they want to teach or not
 	def generateLecturer(self, teachingCourses, hour, preference, session, lecturerNo, timeTable):
 		if lecturerNo >= len(preference):		#generated with every single lecturers
-			for i in range(len(timeTable)):
-				for m in range(len(timeTable[i])):
-					print(timeTable[i][m], end ='')
-					pass
-				print(end='\n')
-				pass
+			pass
 
 		elif session >= 40:				#if all 40 hours have been checked, setup for the next lecturer
 			self.generateLecturer(teachingCourses, hour, preference, 0, lecturerNo + 1, timeTable)
@@ -23,11 +18,10 @@ class Schedule:
 			self.generateLecturer(teachingCourses, hour, preference, session + 1, lecturerNo, timeTable)		
 
 		else:					#lecturer is available for teaching at that moment
-			#if lecturer decides to teach in that session. we'll start with course number 0, hence 0 at the end
-			#once all the teaching sessions have been made, this generateLecturer fucntion is called again
+			#if lecturer decides to teach in that session
 			self.generateCourseToTeach(teachingCourses, hour, preference, session, lecturerNo, 0, timeTable)
 
-			#if lecturer doesn't want to teach in that session, despite being able to, then we just call this function again but move up one session
+			#if lecturer doesn't want to teach in that session
 			self.generateLecturer(teachingCourses, hour, preference, session + 1, lecturerNo, timeTable)			
 			pass
 
