@@ -67,6 +67,7 @@ program flow of control simulation:
 
 
 
-			
+two current problems: it will always skip through the first course and just teach the second course
+duplicate generations: many generations return the same result
 
 
