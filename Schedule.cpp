@@ -65,7 +65,12 @@ private:
 				}
 				cout << endl;
 			}
+			for (int i=0; i<hours.size(); i++) {
+				cout << hours[i] << " ";
+			}
 			cout << endl;
+			cout << endl;
+
 			for (int i=0; i<hours.size(); i++) {			//invalid option: doesn't teach all the required hours
 				if (hours[i] > 0) {
 					return ;
@@ -99,19 +104,23 @@ private:
 	void generateCourseToTeach(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, vector< vector<int> > timeTable)
 	{
 		// if there is no hour left to teach in this course then teach the next one
-		if (hours[courseNo] == 0) {		
-			generateCourseToTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo + 1, timeTable);
+		if (hours[ teachingCourses[lecturerNo][courseNo] ] <= 0) {	
 
-		} else if (hours[teachingCourses[lecturerNo].size()] == 0) {			//if the last course doesn't have any time left to teach that means the lecturer is done for the week
-			generateLecturer(teachingCourses, hours, preference, 0, lecturerNo + 1, timeTable);
+			if (courseNo == teachingCourses[lecturerNo].size() - 1) {				//if there is no next one, that means the lecturer is done for the week
+				generateLecturer(teachingCourses, hours, preference, 0, lecturerNo + 1, timeTable);
+
+			} else {			//if there are courses remaining then jump to that course
+				generateCourseToTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo + 1, timeTable);
+			}
 
 		} else {		//if there are still hours left in that course
+
+			generateTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo, timeTable);			//if lecturer chooses to teach it
 
 			//if this is not the final course, the lecturer has the choice to either teach it or not
 			if (courseNo < teachingCourses[lecturerNo].size() - 1) {				//if the lecturer chooses not to teach it
 				generateCourseToTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo + 1, timeTable);
-			}
-			generateTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo, timeTable);			//if lecturer chooses to teach it
+			}		
 
 		}		
 	}
@@ -124,7 +133,7 @@ private:
 	void generateTeach(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, vector< vector<int> > timeTable)
 	{
 		timeTable[lecturerNo][session] = teachingCourses[lecturerNo][courseNo];			//since you'll have to teach at that session, modify the time table at session to mark that you'll teach at that time
-		hours[courseNo]--;						//and subtract 1 to the remaining hour of that course
+		hours[ teachingCourses[lecturerNo][courseNo] ]--;						//and subtract 1 to the remaining hour of that course
 		generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable);
 
 
@@ -136,12 +145,12 @@ private:
 			} else if (session % 8 == 6 || session % 8 == 3) {
 				// if the next hour is the last hour of the day, then just move on to the next session (i.e. start of new day)
 				// if the next hour is lunch break, then just jump an hour ahead since lunch break doesn't count in schedule
-				hours[courseNo]--;
+				hours[ teachingCourses[lecturerNo][courseNo] ]--;
 				timeTable[lecturerNo][session + 1] = teachingCourses[lecturerNo][courseNo];
 				generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable);
 
 			} else {							// if the next hour is not the last hour of the day, then you have to jump 1 more hour as teaching break
-				hours[courseNo]--;
+				hours[ teachingCourses[lecturerNo][courseNo] ]--;
 				timeTable[lecturerNo][session + 1] = teachingCourses[lecturerNo][courseNo];
 				generateLecturer(teachingCourses, hours, preference, session + 3, lecturerNo, timeTable);			
 			}
@@ -166,6 +175,17 @@ private:
 			}
 			counter = 0;
 		}
+
+		// for (int i=0; i<timeTable.size(); i++) {			//just print everything out for testing purposes
+		// 	for (int m=0; m<timeTable[i].size(); m++) {
+		// 		if (timeTable[i][m] != -1) {
+		// 			cout << "\e[34m";
+		// 		}
+		// 		cout << timeTable[i][m] << "\e[0m ";
+		// 	}
+		// 	cout << endl;
+		// }
+		// cout << endl;
 
 		//next function here
 	}
