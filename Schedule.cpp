@@ -70,13 +70,6 @@ private:
 				}
 				cout << endl;
 
-			// for (int i=0; i<hours.size(); i++) {			//invalid option: doesn't teach all the required hours
-			// 	cout << hours[i] << " ";
-			// }	
-			// cout << endl;
-			// return;
-
-			// checkRoom(timeTable);			//check if the number of rooms allows for this timetable
 
 		} else if (session >= 40) {
 			//if all 40 hours of the week have been checked, then move on to the next lecturer
@@ -88,11 +81,15 @@ private:
 			
 		} else {			//lecturer can teach in that session
 			//if the lecturer decides to teach in that session
-			generateCourseToTeach(teachingCourses, hours, preference, session, lecturerNo, 0, timeTable, roomLayout);
+			// generateCourseToTeach(teachingCourses, hours, preference, session, lecturerNo, timeTable, roomLayout);
+			for (int i=0; i<teachingCourses[lecturerNo].size(); i++) {
+				if (hours[ teachingCourses[lecturerNo][i] ] > 0) {
+					generateTeach(teachingCourses, hours, preference, session, lecturerNo, teachingCourses[lecturerNo][i], timeTable, roomLayout);			//if lecturer chooses to teach it
+				}
+			}
 
 			//if lecturer doesn't teach in that session, then move on to the next session
 			generateLecturer(teachingCourses, hours, preference, session + 1, lecturerNo, timeTable, roomLayout);
-
 		}
 	}
 
@@ -102,24 +99,25 @@ private:
 
 
 	//if the lecturer decides to teach, which course to teach (since a lecturer can tech multiple courses)
-	void generateCourseToTeach(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, vector< vector<int> > timeTable, vector<int> roomLayout)
+	void generateCourseToTeach(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, vector< vector<int> > timeTable, vector<int> roomLayout)
 	{
-		// cout << counter++ << " call generateCourseToTeach" << endl;
+		// // cout << counter++ << " call generateCourseToTeach" << endl;
 
-		//as long as it's not the last course in the lecturer's list, he/she will have the option to not teach it in this session
-		//this condition will also cover the case that there is no hour left in that course, which the lecturer will move onto the next course
-		if (courseNo < teachingCourses[lecturerNo].size() - 1) {
-			generateCourseToTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo + 1, timeTable, roomLayout);
-		}
+		// //as long as it's not the last course in the lecturer's list, he/she will have the option to not teach it in this session
+		// //this condition will also cover the case that there is no hour left in that course, which the lecturer will move onto the next course
+		// if (courseNo < teachingCourses[lecturerNo].size() - 1) {
+		// 	generateCourseToTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo + 1, timeTable, roomLayout);
+		// }
 
-		//if the last course the lecturer has to teach doesn't have any hours left, that means the lecturer is done for the week
-		if (hours[ teachingCourses[lecturerNo][courseNo] ] == 0 && courseNo == teachingCourses[lecturerNo].size() - 1) {
-			generateLecturer(teachingCourses, hours, preference, 0, lecturerNo + 1, timeTable, roomLayout);
+		// //if the last course the lecturer has to teach doesn't have any hours left, that means the lecturer is done for the week
+		// if (hours[ teachingCourses[lecturerNo][courseNo] ] == 0 && courseNo == teachingCourses[lecturerNo].size() - 1) {
+		// 	generateLecturer(teachingCourses, hours, preference, 0, lecturerNo + 1, timeTable, roomLayout);
 
-		} else if (hours[ teachingCourses[lecturerNo][courseNo] ] > 0) {		//if there are still hours left in that course
-			generateTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo, timeTable, roomLayout);			//if lecturer chooses to teach it
+		// } else if (hours[ teachingCourses[lecturerNo][courseNo] ] > 0) {		//if there are still hours left in that course
+		// 	generateTeach(teachingCourses, hours, preference, session, lecturerNo, courseNo, timeTable, roomLayout);			//if lecturer chooses to teach it
 
-		}		
+		// }
+
 	}
 
 
@@ -134,9 +132,7 @@ private:
 		timeTable[lecturerNo][session] = teachingCourses[lecturerNo][courseNo];			//modify the time table at session to mark that you'll teach at that time
 		hours[ teachingCourses[lecturerNo][courseNo] ]--;								//and subtract 1 to the remaining hour of that course
 		roomLayout[session]--;
-
 		generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable, roomLayout);		//jump an hour ahead as teaching break
-
 
 
 		// if there is still hour left in the course, next session is free and there are rooms available, then check to see if the lecturer can teach the next session or not
