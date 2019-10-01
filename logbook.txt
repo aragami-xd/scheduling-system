@@ -19,3 +19,15 @@ lecturer 1
 					do the same with every other courses. if you get to the last day of the week and you haven't taught every courses yet, the option is out
 
 (hope that actually make sense)
+
+
+
+
+logbook time!
+Update: So I've got the algorithm to somewhat follow my plan. I added the "where" part into the program and it was fairly easy: pass into the function a vector that contain the "room layout" (which tells how many rooms are available at the moment) and just skip that session if there is no room available. That one was easy enough
+
+But I've realized a small problem with my current algorithm (that I'm not sure if it's actually right or not). Some pseudocode:
+///the lecturer teaches at that session
+	teach course 1 or not? yes, move on with the next function. no, call this function again with course 2
+
+The problem with this algorithm is: it'll always skip the first course and move on to the next one, then skip it and do the same until it gets to the final course. Though, i'm not sure if this is true or not, or the algorithm is simply too slow at the moment to test it out
