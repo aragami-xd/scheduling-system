@@ -71,3 +71,6 @@ two current problems: it will always skip through the first course and just teac
 duplicate generations: many generations return the same result
 
 
+back to the drawing board then: use the original 
+
+

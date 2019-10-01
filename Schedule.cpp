@@ -11,7 +11,7 @@ private:
 	int totalRooms;
 	int counter = 0;
 
-
+	//setup functions
 	//setting up a timetable with full of -1
 	vector< vector<int> > generateGenericTimetable(int noLecturers)
 	{
@@ -51,11 +51,15 @@ private:
 
 
 
+
+
+	//main functions
 	//determining if the lecturer can teach at this session, and if can, decides to teach or not
 	void generateLecturer(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, vector< vector<int> > timeTable)
 	{
+		cout << "lecture no " << lecturerNo << " and session " << session << endl;
 		// cout << counter++ << " call generateLectuer" << endl;
-		if (lecturerNo >= preference.size()) {				//every lecturer has been generated
+		if (lecturerNo == preference.size() && session == 40) {				//every lecturer has been generated
 			// counter++;
 
 			// if (counter % 100000 == 0) {
@@ -79,10 +83,20 @@ private:
 
 			checkRoom(timeTable);			//check if the number of rooms allows for this timetable
 
-		} else if (session >= 40) {			//all 40 hours have been checked
-			generateLecturer(teachingCourses, hours, preference, 0, lecturerNo + 1, timeTable);
+		} else if (lecturerNo == preference.size()) {
+			//when all the lecturers have been generated for that day, move on to the next day
+			generateLecturer(teachingCourses, hours, preference, session + 1, 0, timeTable);
 
-		} else if (preference[lecturerNo][session] == 0) {			//if lecturer is not available for teaching at that session
+		} else if (session == 40) {
+			//when a lecturer has been fully generated for the week, go to the next lecturer
+			generateLecturer(teachingCourses, hours, preference, 32, lecturerNo + 1, timeTable);
+
+		} else if (session % 8 == 7) {
+			//end of the day for one lecturer, move on to the next one
+			generateLecturer(teachingCourses, hours, preference, session - 8, lecturerNo + 1, timeTable);
+
+		} else if (preference[lecturerNo][session] == 0 /* || roomLayout[session % 8] == 0 */) {
+			//if the lecturer is not available for teaching in that session or there is no room left to teach
 			generateLecturer(teachingCourses, hours, preference, session + 1, lecturerNo, timeTable);
 			
 		} else {			//lecturer can teach in that session
@@ -195,14 +209,20 @@ public:
 	{
 		totalRooms = rooms;
 		vector< vector<int> > teachingCourses = generateTeachingCourses(binaryMapping);
-		for (int i=0; i<teachingCourses.size(); i++) {
-			for (int m=0; m<teachingCourses[i].size(); m++) {
-				cout << teachingCourses[i][m] << " ";
-			}
-			cout << endl;
-		}
-		cout << endl;
 		vector< vector<int> > genericTimetable = generateGenericTimetable(lecturers.size());
+
+		vector< bool > taught;					//see if that course has already been taught that day
+		fill(taught.begin(), taught.end(), false);
+
+		vector<int> roomLayout;					//layout of the room throughout the day, seeing how many rooms is left at a certatin session
+		fill(roomLayout.begin(), roomLayout.end(), rooms);
+		// for (int i=0; i<teachingCourses.size(); i++) {
+		// 	for (int m=0; m<teachingCourses[i].size(); m++) {
+		// 		cout << teachingCourses[i][m] << " ";
+		// 	}
+		// 	cout << endl;
+		// }
+		// cout << endl;
 
 		generateLecturer(teachingCourses, hours, preferences, 0, 0, genericTimetable);			//the start of it all
 		cout << "done" << endl;
