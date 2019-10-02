@@ -35,7 +35,7 @@ int main()
 {1,0}};
 
 	vector<int> hours = {2,3,2};
-	int rooms = 2;
+	int rooms = 1;
 	int courses = 3;
 	vector<string> names = {"ADSA", "EDC", "PSSD"};
 	vector<string> lecturers = {"Cruz", "Minygu"};
