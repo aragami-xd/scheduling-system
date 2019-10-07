@@ -71,6 +71,40 @@ two current problems: it will always skip through the first course and just teac
 duplicate generations: many generations return the same result
 
 
-back to the drawing board then: use the original 
+back to the drawing board then: use the original. pseudocode:
+loop 1 day for 1 lecturer:
+	if last lecturer, last day of the week:
+		print out
+	else if last last lecturer, last hour of the day:
+		call function
+		back to first lecturer, next day of the week
+	else if not last lecturer, last hour of the day (including last day of the week):
+		call function
+		go to next lecturer
+	else if busy, lunch break or doesn't have any rooms left:
+		move on to next hour
+	else if not busy and has room:
+		teach course 1 if there is still hour left
+		teach course 2 if there is still hour left
+		...
+		don't teach, move on
+
+
+teach function:
+if last hour of the day:
+	teach 1 hour session only and don't jump ahead since the previous function will take care of it (by just return rather than call the previous function)
+else:
+	teach 1 hour session then jump ahead to the next hour of the day
+if last hour of the day:
+	do nothing since you can only teach 1 hour session
+else if next hour is the last hour of the day:
+	teach 2 hour session then return and the previous function will take care of it
+else if next hour is the lunch break:
+	teach 1 hour session only since you have to take the lunch break
+else:
+	teach 2 hour session then you take the lunch break
+
+
+
 
 

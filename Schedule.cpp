@@ -11,6 +11,23 @@ private:
 	int counter = 0;
 
 
+	//setting up a timetable with full of -1
+	vector< vector<int> > generateGenericTimetable(int noLecturers)
+	{
+		vector< vector<int> > genericTimetable;
+
+		for (int i=0; i<noLecturers; i++) {
+			genericTimetable.push_back({});
+			for (int m=0; m<40; m++) {
+				genericTimetable[i].push_back(-1);
+			}
+		}
+
+		return genericTimetable;
+	}
+
+
+
 	//create a vector of list of courses that a lecturer will teach
 	vector< vector<int> > generateTeachingCourses(vector< vector<int> > &binaryMapping)
 	{
@@ -46,17 +63,21 @@ private:
 
 			if (lecturerNo == preference.size() - 1 && session >= 39) {
 				// if the last day of the last lecturer has been generated, then that's all for the week, recursion function stops
+				// counter++;
 
-				for (int i=0; i<timeTable.size(); i++) {			//just print everything out for testing purposes
-					for (int m=0; m<timeTable[i].size(); m++) {
-						if (timeTable[i][m] != -1) {			//print occupied hours with blue color for clarity
-							cout << " \e[94m";
+				// if (counter > 320) {
+					for (int i=0; i<timeTable.size(); i++) {			//just print everything out for testing purposes
+						for (int m=0; m<timeTable[i].size(); m++) {
+							if (timeTable[i][m] != -1) {			//print occupied hours with blue color for clarity
+								cout << " \e[31m";
+							}
+							cout << timeTable[i][m] << " \e[0m";
 						}
-						cout << timeTable[i][m] << "\e[0m ";
+						cout << endl;
 					}
 					cout << endl;
-				}
-				cout << endl;
+				// }
+
 				return;
 
 			} else if (preference[lecturerNo][session] == 0 || roomLayout[session] <= 0) {
@@ -68,7 +89,7 @@ private:
 				// if the lecturer decides to teach in that session
 				for (int i=0; i<teachingCourses[lecturerNo].size(); i++) {
 
-					if (hours[ teachingCourses[lecturerNo][i] ] > 0) {
+					if (hours[ teachingCourses[lecturerNo][i] ] > 0 && taught[ teachingCourses[lecturerNo][i] ] == false) {
 						// if there is still time left in the course and that course has not been taught that day
 						generateTeach(teachingCourses, hours, preference, session, lecturerNo, teachingCourses[lecturerNo][i], timeTable, taught, roomLayout);			//if lecturer chooses to teach it
 					}
@@ -79,13 +100,13 @@ private:
 					// if one day of the last lecturer has been generated then move back to the next day of the first lecturer
 					session++;
 					lecturerNo = 0;
-					// fill(taught.begin(), taught.end(), false);
+					fill(taught.begin(), taught.end(), false);
 
 				} else if (lecturerNo < preference.size() - 1 && session % 8 == 7) {
 					// if one day of a lecturer has been generated then move on to the next lecturer, go back to the start of the day
 					session -= 7;
 					lecturerNo++;
-					// fill(taught.begin(), taught.end(), false);
+					fill(taught.begin(), taught.end(), false);
 
 				} else {
 					// if this is not the final session of the day for that lecturer, then move on to the next session 
@@ -95,6 +116,8 @@ private:
 
 			}
 		}
+
+		return;
 
 	}
 
@@ -112,7 +135,7 @@ private:
 		//update the time table, subtract to hours remaining of the course, change status to taught (course has been taught that day) and update roomLayout
 		timeTable[lecturerNo][session] = courseNo;
 		hours[courseNo]--;
-		// taught[courseNo] = true;
+		taught[courseNo] = true;
 		roomLayout[session]--;
 
 		//teaching 1 hour sessions
@@ -123,7 +146,7 @@ private:
 		} else {
 			// else, jump 1 hour ahead as teaching break
 			generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable, taught, roomLayout);	
-			
+
 		}
 		
 
@@ -133,7 +156,6 @@ private:
 
 			if (session % 8 == 7) {		
 				// if this is the last hour of the day then just go home, can't teach 2 hours
-				return;	
 				
 			} else if (session % 8 == 6) {
 				// if the next hour is the last hour of the day, then just move on to the next session (i.e. start of new day) and no teaching break	
@@ -153,10 +175,11 @@ private:
 				hours[courseNo]--;		
 				timeTable[lecturerNo][session + 1] = courseNo;
 				roomLayout[session + 1]--;
-				generateLecturer(teachingCourses, hours, preference, session + 3, lecturerNo, timeTable, taught, roomLayout);	
+				generateLecturer(teachingCourses, hours, preference, session + 3, lecturerNo, timeTable, taught, roomLayout);
 
 			}
 		}
+		return;
 		
 	}
 
@@ -173,11 +196,7 @@ public:
 	{
 		vector< vector<int> > teachingCourses = generateTeachingCourses(binaryMapping);			//convert from binaryMapping to a typical vector for faster access
 
-		vector< vector<int> > genericTimetable;			//a generic blank timetable
-		for (int i=0; i<names.size(); i++) {
-			genericTimetable.push_back({});
-			fill(genericTimetable[i].begin(), genericTimetable[i].end(), -1);
-		}
+		vector< vector<int> > genericTimetable = generateGenericTimetable(lecturers.size());			//a generic blank timetable
 
 		vector<bool> taught(courses);					//see if the course has already been taught that day
 		fill(taught.begin(), taught.end(), false);
