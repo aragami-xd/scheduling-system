@@ -9,6 +9,7 @@ class Schedule
 {
 private:
 	int counter = 0;
+	int rooms = 0;
 
 
 	//setting up a timetable with full of -1
@@ -58,133 +59,119 @@ private:
 	//determining if the lecturer can teach at this session, and if can, decides to teach or not
 	void generateLecturer(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, vector< vector<int> > timeTable, vector<bool> taught, vector<int> roomLayout)
 	{
+		cout << "crash at generateLecturer " << lecturerNo << " " << session << endl;
 		while (1) {
 			//continue looping until hit the base case or a valid case
 
-			if (lecturerNo == preference.size() - 1 && session >= 39) {
-				// if the last day of the last lecturer has been generated, then that's all for the week, recursion function stops
-				// counter++;
-
-				// if (counter > 320) {
-					for (int i=0; i<timeTable.size(); i++) {			//just print everything out for testing purposes
-						for (int m=0; m<timeTable[i].size(); m++) {
-							if (timeTable[i][m] != -1) {			//print occupied hours with blue color for clarity
-								cout << " \e[31m";
-							}
-							cout << timeTable[i][m] << " \e[0m";
-						}
-						cout << endl;
-					}
-					cout << endl;
-				// }
-
-				return;
-
-			} else if (preference[lecturerNo][session] == 0 || roomLayout[session] <= 0) {
-				// if lecturer is not available for teaching at that moment or there is no room left to teach
+			if (preference[lecturerNo][session] == 0 || roomLayout[session] < 1 || session % 8 == 3) {
+				// if lecturer is not available for teaching at that moment, no room left to teach or that session is the lunch break, then move on
 				session ++;
 				
-			} else {			//lecturer can teach in that session
+			} else {			
+				//lecturer can teach in that session, then the lecturer will either teach one of the course he/she is supposed to teach, or skip the session
 
-				// if the lecturer decides to teach in that session
-				for (int i=0; i<teachingCourses[lecturerNo].size(); i++) {
+				//if the lecturer decides to teach
+				for (int i=0; i<teachingCourses[lecturerNo].size(); i++) {			//test with all courses that the lecturer has to teach
+					if (hours[ teachingCourses[lecturerNo][i] ] > 0 && taught[ teachingCourses[lecturerNo][i] ] == false) {				
+						//if there is still time left to teach in that course and it has not been taught that day
 
-					if (hours[ teachingCourses[lecturerNo][i] ] > 0 && taught[ teachingCourses[lecturerNo][i] ] == false) {
-						// if there is still time left in the course and that course has not been taught that day
-						generateTeach(teachingCourses, hours, preference, session, lecturerNo, teachingCourses[lecturerNo][i], timeTable, taught, roomLayout);			//if lecturer chooses to teach it
+						if (session % 8 == 7) {
+							//if this the last session of the day then the lecturer can only teach 1 hour
+							lastHour(teachingCourses, hours, preference, session, lecturerNo, teachingCourses[lecturerNo][i], timeTable, taught, roomLayout);
+
+						} else if (session % 8 == 6) {
+							//if the next session is the last session of the day then the lecturer can teach 2 hour session then teach the next one immediately (bc you take a break at home)
+							generateOneHour(teachingCourses, hours, preference, session, lecturerNo, teachingCourses[lecturerNo][i], 1, timeTable, taught, roomLayout);
+							generateTwoHour(teachingCourses, hours, preference, session, lecturerNo, teachingCourses[lecturerNo][i], 0, timeTable, taught, roomLayout);
+
+						} else if (session % 8 == 2) {
+							//if the next session is the lunch break then you can only teach 1 hour session
+							generateOneHour(teachingCourses, hours, preference, session, lecturerNo, teachingCourses[lecturerNo][i], 2, timeTable, taught, roomLayout);
+
+						} else {
+							//teach 2 hour session then take an extra hour break
+							generateOneHour(teachingCourses, hours, preference, session, lecturerNo, teachingCourses[lecturerNo][i], 2, timeTable, taught, roomLayout);
+							generateTwoHour(teachingCourses, hours, preference, session, lecturerNo, teachingCourses[lecturerNo][i], 2, timeTable, taught, roomLayout);
+
+						}
 					}
-
 				}
 
-				if (lecturerNo == preference.size() - 1 && session % 8 == 7) {
-					// if one day of the last lecturer has been generated then move back to the next day of the first lecturer
-					session++;
-					lecturerNo = 0;
-					fill(taught.begin(), taught.end(), false);
-
-				} else if (lecturerNo < preference.size() - 1 && session % 8 == 7) {
-					// if one day of a lecturer has been generated then move on to the next lecturer, go back to the start of the day
-					session -= 7;
-					lecturerNo++;
-					fill(taught.begin(), taught.end(), false);
-
-				} else {
-					// if this is not the final session of the day for that lecturer, then move on to the next session 
-					session ++;
-
-				}
+				//else if the lecturer decides not to teach
+				session++;
 
 			}
 		}
 
 		return;
-
 	}
 
 
 
 
 
-
-
-
-	//this fucntion will determine if the lecturer can and will teach 2 hour session or not
-	void generateTeach(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, vector< vector<int> > timeTable, vector<bool> taught, vector<int> roomLayout)
+	void lastHour(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, vector< vector<int> > timeTable, vector<bool> taught, vector<int> roomLayout)
 	{
+		cout << "crash at last hour " << lecturerNo << " " << session << endl;
+		//modify the data
+		timeTable[lecturerNo][session] = courseNo;				//modify the data and call the generateLecturer function agian
+		hours[courseNo]--;										//courseNo hold the id number of the course (not related to the lecturer)
 
-		//update the time table, subtract to hours remaining of the course, change status to taught (course has been taught that day) and update roomLayout
-		timeTable[lecturerNo][session] = courseNo;
-		hours[courseNo]--;
+
+
+		//different cases will have different case of calling the recursion function
+		if (lecturerNo < preference.size() - 1) {
+			//if this is not the final lecturer, check the next lecturer						
+			generateLecturer(teachingCourses, hours, preference, session - 8, lecturerNo + 1, timeTable, taught, roomLayout);
+
+		} else if (lecturerNo == preference.size() - 1 && session == 39) {
+			//if this is the final lecturer and this is the final hour of the week then function is done
+			cout << "1 cycle done" << endl;
+			return;
+
+		} else {
+			//if this is the final lecturer but not the final hour of the week then move on to the next day with first lecturer
+			fill(taught.begin(), taught.end(), false);				//reset the taught vector and roomLayout vector for the next day
+			fill(roomLayout.begin(), roomLayout.end(), rooms);
+
+			generateLecturer(teachingCourses, hours, preference, session + 1, 0, timeTable, taught, roomLayout);
+
+		}
+	}
+
+
+
+
+	void generateOneHour(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, int skip, vector< vector<int> > timeTable, vector<bool> taught, vector<int> roomLayout)
+	{
+		cout << "crash at 1 hour " << lecturerNo << " " << session << endl;
+		timeTable[lecturerNo][session] = courseNo;				//modify the data and call the generateLecturer function agian
+		hours[courseNo]--;										//courseNo hold the id number of the course (not related to the lecturer)
 		taught[courseNo] = true;
 		roomLayout[session]--;
 
-		//teaching 1 hour sessions
-		if (session % 8 == 7 || session % 8 == 2) {
-			// if this is the last hour of the day or the next hour is lunch break, then jump directly to the next hour
-			generateLecturer(teachingCourses, hours, preference, session + 1, lecturerNo, timeTable, taught, roomLayout);
-
-		} else {
-			// else, jump 1 hour ahead as teaching break
-			generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable, taught, roomLayout);	
-
-		}
-		
-
-
-		// if there are still time left in the course, next session is free and there are rooms available, then check to see if the lecturer will teach 2 hour sessionr or not
-		if (preference[lecturerNo][session + 1] != 0 && hours[ courseNo ] > 1 && roomLayout[session + 1] > 0) {		
-
-			if (session % 8 == 7) {		
-				// if this is the last hour of the day then just go home, can't teach 2 hours
-				
-			} else if (session % 8 == 6) {
-				// if the next hour is the last hour of the day, then just move on to the next session (i.e. start of new day) and no teaching break	
-				hours[courseNo]--;			
-				timeTable[lecturerNo][session + 1] = courseNo;
-				roomLayout[session + 1]--;
-				generateLecturer(teachingCourses, hours, preference, session + 1, lecturerNo, timeTable, taught, roomLayout);
-
-			} else if (session % 8 == 2) {
-				// since the lunch break is not an official teaching session, it's not on the timetable and doesn't affect the room count
-				// no courses can start during the lunch break, so there is no need to worry about the extra room
-				hours[courseNo]--;	
-				generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable, taught, roomLayout);
-
-			} else {
-				// if the next hour is not the last hour of the day, then you have to jump 1 more hour as teaching break	
-				hours[courseNo]--;		
-				timeTable[lecturerNo][session + 1] = courseNo;
-				roomLayout[session + 1]--;
-				generateLecturer(teachingCourses, hours, preference, session + 3, lecturerNo, timeTable, taught, roomLayout);
-
-			}
-		}
-		return;
-		
+		generateLecturer(teachingCourses, hours, preference, session + skip, lecturerNo, timeTable, taught, roomLayout);
 	}
 
 
 
+
+	void generateTwoHour(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, int courseNo, int skip, vector< vector<int> > timeTable, vector<bool> taught, vector<int> roomLayout)
+	{
+		cout << "crash at 2 hour " << lecturerNo << " " << session << endl;
+		if (hours[courseNo] < 2) {								//if there are more than 1 hour left to teach
+			return;
+		}
+
+		timeTable[lecturerNo][session] = courseNo;				//modify the data and call the generateLecturer function agian
+		timeTable[lecturerNo][session + 1] = courseNo;
+		hours[courseNo] -= 2;									//courseNo hold the id number of the course (not related to the lecturer)
+		taught[courseNo] = true;
+		roomLayout[session]--;
+		roomLayout[session + 1]--;
+
+		generateLecturer(teachingCourses, hours, preference, session + skip + 1, lecturerNo, timeTable, taught, roomLayout);
+	}
 
 
 
@@ -203,6 +190,8 @@ public:
 
 		vector<int> roomLayout(40);						//see if there is any room left throughout the day
 		fill(roomLayout.begin(), roomLayout.end(), rooms);
+
+		rooms = this->rooms;
 
 		// for (int i=0; i<teachingCourses.size(); i++) {
 		// 	for (int m=0; m<teachingCourses[i].size(); m++) {
