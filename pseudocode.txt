@@ -75,7 +75,7 @@ back to the drawing board then: use the original. pseudocode:
 loop 1 day for 1 lecturer:
 	if last lecturer, last day of the week:
 		print out
-	else if last last lecturer, last hour of the day:
+	else if not last lecturer, last hour of the day:
 		call function
 		back to first lecturer, next day of the week
 	else if not last lecturer, last hour of the day (including last day of the week):
@@ -103,6 +103,22 @@ else if next hour is the lunch break:
 	teach 1 hour session only since you have to take the lunch break
 else:
 	teach 2 hour session then you take the lunch break
+
+
+- use shell time limit to stop the program when a certain time threashold is met:
+$ timeout <time-limit-interval> <command>
+-> $ make all
+-> $ timeout 59s ./a.out
+
+
+
+- other option: keep track of the time in c++. save a time stamp using clock of when the function starts. once the clock hits 60s or before it, stop every single function and return the value
+
+
+
+
+
+tejas's option:
 
 
 
