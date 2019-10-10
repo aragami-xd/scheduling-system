@@ -58,15 +58,12 @@ private:
 	//determining if the lecturer can teach at this session, and if can, decides to teach or not
 	void generateLecturer(vector< vector<int> > &teachingCourses, vector<int> hours, vector< vector<int> > &preference, int session, int lecturerNo, vector< vector<int> > timeTable, vector<bool> taught, vector<int> roomLayout)
 	{
-		cout << "crash at generateLecturer " << lecturerNo << " " << session << endl;
-
 		//continue looping until hit the base case or a valid case
 		while (1) {
-			cout << lecturerNo << " " << session << endl;
 
 
 			// all the different invalid cases and jump cases (end of the day jump)
-			if (lecturerNo == timeTable.size() && session == 40) {
+			if (lecturerNo == timeTable.size() - 1 && session == 40) {
 				// all the lecturers have been generated to the last day of the week, return
 
 				//print out everything for testing purposes only
@@ -81,7 +78,7 @@ private:
 				}
 				return;
 
-			} else if (lecturerNo == timeTable.size() && session == currentDay) {
+			} else if (lecturerNo == timeTable.size() - 1 && session == currentDay) {
 				// if one day for the last lecturer has been generated then go back to the first lecturer and start on the next day
 				currentDay += 8;
 				lecturerNo = 0;
@@ -112,12 +109,10 @@ private:
 						- teach the nth course he/she has to teach
 						- not teach in this session and move on to the next one
 					*/
-					cout << "else case" << endl;
 
 					for (int i=0; i<teachingCourses[lecturerNo].size() + 1; i++) {
 						// first option: the lecturer decides not to teach
 						if (i == teachingCourses.size()) {
-							cout << "call the function again" << endl;
 							generateLecturer(teachingCourses, hours, preference, session + 1, lecturerNo, timeTable, taught, roomLayout);
 
 						//second option(s): the lecturer decides to teach
@@ -164,11 +159,11 @@ void generateTeach(vector< vector<int> > &teachingCourses, vector<int> hours, ve
 	} else {
 		// else, the lecturer will have the choice of either teaching 2 hours or 1 hour
 		for (int i=0; i<2; i++) {
-			if (i==0) {
+			if (i == 0) {
 				// teach 1 hour session, skip 1 hour ahead as teaching break
 				generateLecturer(teachingCourses, hours, preference, session + 2, lecturerNo, timeTable, taught, roomLayout);
 
-			} else {
+			} else if (i == 1 && hours[courseNo] > 0 && roomLayout[session+1] > 0) {
 				//teach 2 hours session, skip 1 hour ahead as teaching break
 				hours[courseNo]--;								// modifying the table. by default, consider that the lecturer will teach 1 hour session
 				roomLayout[session+1]--;
