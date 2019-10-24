@@ -118,7 +118,11 @@ $ timeout <time-limit-interval> <command>
 
 
 
-tejas's option:
+
+
+alright, start fresh. brute force like that is not a great option by any mean. we'll go straight to the result then trying to improve it, like a optimization / iterative improvement problem
+based on what cruz said, you can start the problem randomly or from any where you wanted to
+	start 
 
 
 
