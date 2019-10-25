@@ -121,8 +121,7 @@ $ timeout <time-limit-interval> <command>
 
 
 alright, start fresh. brute force like that is not a great option by any mean. we'll go straight to the result then trying to improve it, like a optimization / iterative improvement problem
-based on what cruz said, you can start the problem randomly or from any where you wanted to
-	start 
+based on what cruz said, you can start the problem randomly or from any where you wanted to. i'll start from the first valid solution i can create which is created using typical iteration approach. i'll keep track of the preference score of the lecturer in a vector (i.e. the preference score of every session that the lecturer teaches), sort it so i can deal with the highest score first
 
 
 

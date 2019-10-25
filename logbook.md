@@ -31,3 +31,15 @@ But I've realized a small problem with my current algorithm (that I'm not sure i
 	teach course 1 or not? yes, move on with the next function. no, call this function again with course 2
 
 The problem with this algorithm is: it'll always skip the first course and move on to the next one, then skip it and do the same until it gets to the final course. Though, i'm not sure if this is true or not, or the algorithm is simply too slow at the moment to test it out
+
+
+
+
+
+
+logbook time!
+Alright, i'll start fresh again since the initial solution is no viable by any means (after all, it's just glorfied brute force). i'll now go for an optimization / iterative improvement approach
+
+some global variables that i might use to deal with the calculations: a vector vector of result, a vector that contain the preference score of every occupied slot in the final solution, and a score of fit
+
+i'll create an initial solution. this can be easily done iteratively through a bunch of loops (though from the pseudocode i've written, it's going to be O(n^4)). as i loop through the program, if a course can be filled into a cell of the solution vector, i'll fill in immediately and make changes to other variables. room constraints will be considered here (it's pretty easy actually). however, preference will not be considered, but all the preference scores will be saved, which later will be sorted descendingly so i can move that slot into another place
