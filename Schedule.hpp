@@ -17,8 +17,9 @@ private:
 	//score of fit
 	double fit = 0;
 
-	//hold the preference of each slot filled in
+	//hold the preference of each slot filled in: pair<preference, cell in solution>
 	vector< pair<int, int> > preferenceScore;
+
 
 	//print the solution into an xml file
 	void output()
@@ -64,12 +65,12 @@ private:
 	*/
 	void initialSolution(int rooms, int courses, vector<int> hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference)
 	{
-		//fill up the room
+		//fill up the room of each day
 		vector<int> roomCount(8);
 		fill(roomCount.begin(), roomCount.end(), rooms);
 
 		//the earliest day that the course can be taught
-		vector<int> courseDay(5);
+		vector<int> courseDay(courses);
 		fill(courseDay.begin(), courseDay.end(), 0);
 
 		//the conditions
@@ -86,17 +87,19 @@ private:
 					//if the lecturer is free at that session and there are still rooms avaiable
 					if ( preference[m][i*8 + n] != 0 && roomCount[n] > 0 ) {
 						//loop through every course
-						for (int x=0; x<binaryMapping.size(); x++) {
+						for (int x=0; x<courses; x++) {
+							cout << "day " << i << " hour " << n << " lecturer " << m << " course " << x << ": " << binaryMapping[x][m] << " " << hours[x] << " " << courseDay[x] << endl;
 							//if the lecturer teaches that course, there is time left to teach and the course has not been taught that day
 							if (binaryMapping[x][m] == 1 && hours[x] > 0 && i >= courseDay[x]) {
+								cout << "valid" << endl;
 								//number of the course
 								solution[m][i*8 + n] = x;	
 
 								//the cell number in the solution vector and it's preference score		
-								preferenceScore.push_back( {m*40 + i*8 + n, preference[m][i*8 + n]} );
+								preferenceScore.push_back( {preference[m][i*8 + n], m*40 + i*8 + n} );
 
 								//set the course to the next day so it can't be taught again
-								courseDay[x]++;
+								courseDay[x] = i+1;
 
 								//decrease the total room count
 								roomCount[n]--;
@@ -104,11 +107,10 @@ private:
 								//decrease the hour count
 								hours[x]--;
 
-								//if this is not the last hour of the day then skip the next hour as lunch break
-								//else, just go home and take a break, therefore the lecturer can teach at the next session (i.e. first session of next day)
-								if (n % 8 != 7) {
-									n++;
-								}
+								//move on to the next hour (end of the day will exit the loop)
+								n++;
+
+								break;
 							}
 						}
 					}
@@ -123,6 +125,9 @@ private:
 				cout << "generation failed: course " << i << " has " << hours[i] << " hours remaining" << endl;
 			}
 		}
+
+		//sort the vector of preference desendingly by it's score
+		sort(preferenceScore.begin(), preferenceScore.end());
 
 		return ;
 	}
@@ -157,7 +162,10 @@ public:
 
 		for (int i=0; i<preferenceScore.size(); i++) {
 			cout << preferenceScore[i].first << " " << preferenceScore[i].second << endl;
-			fit += preferenceScore[i].second;
+			if (preferenceScore[i].first != 1) {
+				fit += preferenceScore[i].first;
+			}
+			
 		}
 		cout << "total score: " << fit << endl;
 
