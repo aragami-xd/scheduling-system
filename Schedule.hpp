@@ -148,10 +148,13 @@ void extend(vector<int> &hours, vector<vector<int>> &binaryMapping, vector<vecto
 			//check and see if the next session has the score of 1 or not, regardless of room constraint
 			//if we don't have enough room then we'll try to move the other session away to make room for it
 			if (preference[lecturerNo][slot] == 1) {
-				cout << "waiting for a swap " << courseNo << endl;
 				//if this slot is suitable for an extension, then swap out with another slot
-				swap(binaryMapping, preference, i, courseNo);
-				solution[lecturerNo][slot] = courseNo;
+				bool betterSolution = swap(binaryMapping, preference, i, courseNo);
+				cout << "better solution is " << boolalpha << betterSolution << endl;
+				//if you can swap out for a better solution
+				if (betterSolution) {
+					solution[lecturerNo][slot] = courseNo;
+				} 
 			}
 
 		}
@@ -162,7 +165,7 @@ void extend(vector<int> &hours, vector<vector<int>> &binaryMapping, vector<vecto
 
 
 //this function will swap out another session for the extended one
-void swap(vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int index, int currentCourse)
+bool swap(vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int index, int currentCourse)
 {
 	//loop from the worst solution to the best solution
 	for (int i=preferenceScore.size(); i>index; i--) {
@@ -171,17 +174,17 @@ void swap(vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, i
 		int lecturerNo = div(slot, 40).quot;
 		slot = div(slot, 40).rem;
 		int courseNo = solution[lecturerNo][slot];
-		cout << courseNo << endl;
+
 		//if this course is the current course then delete this course, change the room data and move on
 		if (currentCourse == courseNo) {
-			cout << "found a matching one" << endl;
+			cout << "found a better solution" << endl;
 			preferenceScore.erase(preferenceScore.begin() + i);
-			preference[lecturerNo][slot] = -1;
+			solution[lecturerNo][slot] = -1;
 			roomCount[slot]++;
-			return ;
+			return true;
 		}
 	}
-	return ;
+	return false;
 }
 
 

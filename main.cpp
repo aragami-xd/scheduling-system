@@ -24,10 +24,6 @@ int main()
 	int courses = 5;
 	vector<string> names = {"ADSA", "EDC", "PSSD", "OOP", "CS"};
 	vector<string> lecturers = {"Cruz", "Minygu", "Cheryl", "Fred"};
-	//cruz teaches edc (1) and pssd (2)
-	//minygu teaches edc (1) and oop (3)
-	//cheryl teaches adsa (0)
-	//fred teaches cs (4)
 
 // 		vector< vector<int> > preference = {
 // {5,2,2,0,1,1,1,2,5,2,2,0,1,1,1,2,0,0,0,0,0,0,0,0,5,2,2,0,1,1,1,2,5,2,2,0,2,2,5,5},

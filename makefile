@@ -7,7 +7,7 @@ all: Schedule.hpp main.cpp
 #the program will timeout in 60s and the solution will be printed out onto the console
 test: Schedule.hpp main.cpp
 	g++ Schedule.hpp main.cpp
-	timeout 60s ./a.out
+	./a.out
 	more solution.xml
 
 #clean the gch file, a.out file and the solution

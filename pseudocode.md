@@ -136,3 +136,9 @@ i'll create an initial solution. this can be easily done iteratively through a b
 moving to another slot somehow, i'm still working on it, but for now this seems to be a good strategy for me
 
 (i realize that this sounds pretty much like greedy algorithm)
+
+
+
+
+
+so after having the ascendingly sorted preference score vector, i'll try to extend every 1 hour session into 2 hour session. the reason is that teaching 2 hour session is always more "efficient" than 1: while there is more room for room overflow (pardon the pun), it opens up more free space to relocate the bad slots
