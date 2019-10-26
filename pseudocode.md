@@ -126,4 +126,13 @@ based on what cruz said, you can start the problem randomly or from any where yo
 
 
 
+logbook time!
+Alright, i'll start fresh again since the initial solution is no viable by any means (after all, it's just glorfied brute force). i'll now go for an optimization / iterative improvement approach
 
+some global variables that i might use to deal with the calculations: a vector vector of result, a vector that contain the preference score of every occupied slot in the final solution, and a score of fit
+
+i'll create an initial solution. this can be easily done iteratively through a bunch of loops (though from the pseudocode i've written, it's going to be O(n^4)). as i loop through the program, if a course can be filled into a cell of the solution vector, i'll fill in immediately and make changes to other variables. room constraints will be considered here (it's pretty easy actually). however, preference will not be considered, but all the preference scores will be saved, which later will be sorted descendingly so i can move that slot into another place
+
+moving to another slot somehow, i'm still working on it, but for now this seems to be a good strategy for me
+
+(i realize that this sounds pretty much like greedy algorithm)

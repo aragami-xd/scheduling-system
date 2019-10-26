@@ -44,4 +44,6 @@ some global variables that i might use to deal with the calculations: a vector v
 
 i'll create an initial solution. this can be easily done iteratively through a bunch of loops (though from the pseudocode i've written, it's going to be O(n^4)). as i loop through the program, if a course can be filled into a cell of the solution vector, i'll fill in immediately and make changes to other variables. room constraints will be considered here (it's pretty easy actually). however, preference will not be considered, but all the preference scores will be saved, which later will be sorted descendingly so i can move that slot into another place
 
-(i realize that this sounds pretty much like a greedy algorithm, but i'm not sure if it is or not. i just prioritize the worst cells first)
+moving to another slot somehow, i'm still working on it, but for now this seems to be a good strategy for me
+
+(i realize that this sounds pretty much like greedy algorithm)
