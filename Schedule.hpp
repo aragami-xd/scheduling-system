@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <set>
 #include <fstream>
 #include <utility>
 #include <algorithm>
@@ -68,7 +67,7 @@ private:
 							set courseDay to the next day and decrease room count
 							skip 1 hour ahead if this is not the last hour of the day
 	*/
-	void initialSolution(int courses, vector<int> hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference)
+	void initialSolution(int rooms, int courses, vector<int> hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference)
 	{
 		//the earliest day that the course can be taught
 		vector<int> courseDay(courses);
@@ -133,7 +132,7 @@ private:
 
 //try to extend all of the 1 hour 1 score solution
 //while this may cause room overflow, it opens up more room for the worse solutions to move around
-void extend(vector<int> &hours, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference)
+void extend(int rooms, int courses, vector<int> &hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference)
 {
 	//loop through the entire preferenceScore list to extend every 1 score solutions (if the course has more than 1 hour a week)
 	for (int i=0; i<preferenceScore.size(); i++) {
@@ -150,7 +149,6 @@ void extend(vector<int> &hours, vector<vector<int>> &binaryMapping, vector<vecto
 			if (preference[lecturerNo][slot] == 1) {
 				//if this slot is suitable for an extension, then swap out with another slot
 				bool betterSolution = swap(binaryMapping, preference, i, courseNo);
-				cout << "better solution is " << boolalpha << betterSolution << endl;
 				//if you can swap out for a better solution
 				if (betterSolution) {
 					solution[lecturerNo][slot] = courseNo;
@@ -168,7 +166,7 @@ void extend(vector<int> &hours, vector<vector<int>> &binaryMapping, vector<vecto
 bool swap(vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int index, int currentCourse)
 {
 	//loop from the worst solution to the best solution
-	for (int i=preferenceScore.size(); i>index; i--) {
+	for (int i=preferenceScore.size() - 1; i>index; i--) {
 		//extract the data of that current slot: lecturerNo, slot (i.e. which session of the week) and courseNumber
 		int slot = preferenceScore[i].second;
 		int lecturerNo = div(slot, 40).quot;
@@ -177,7 +175,6 @@ bool swap(vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, i
 
 		//if this course is the current course then delete this course, change the room data and move on
 		if (currentCourse == courseNo) {
-			cout << "found a better solution" << endl;
 			preferenceScore.erase(preferenceScore.begin() + i);
 			solution[lecturerNo][slot] = -1;
 			roomCount[slot]++;
@@ -186,6 +183,35 @@ bool swap(vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, i
 	}
 	return false;
 }
+
+
+
+//this function will test and see if the improvement introduces any clashing or not, if not call a function that relocate the cells to fix it
+void validate(int rooms, int courses, vector<int> &hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int index, int lecturerNo)
+{
+	//see if there is sufficient room for that time of the day
+	int classes = 0;
+	vector<int> score(courses);						//get the preference of every cell with the same time so you can relocate the worst one
+	for (int i=0; i<lecturers.size(); i++) {
+		if (solution[i][index] != -1) {
+			classes++;
+			score.push_back(preference[i][index]);
+		}
+	}
+	if (classes > rooms) {
+		int worst = *min_element(score.begin(), score.end());
+		// relocate();
+	}
+
+	//see if the next session is a teaching break or not
+	if (solution[i][index + 1] != -1) {
+		// relocate();
+	}
+}
+
+
+
+//this funciton will relocate the "invalid" cell another location
 
 
 
@@ -225,10 +251,10 @@ public:
 
 
 		//generate an initial solution of the problem
-		initialSolution(courses, hours, lecturers, binaryMapping, preference);
+		initialSolution(rooms, courses, hours, lecturers, binaryMapping, preference);
 
 		//extend the function
-		extend(hours, binaryMapping, preference);
+		extend(rooms, courses, hours, lecturers, binaryMapping, preference);
 
 		//output the xml file
 		output();
