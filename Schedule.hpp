@@ -16,7 +16,7 @@ private:
 	
 	//score of fit
 	int fit;					//the total preference score of values that isn't 1 (i.e. 2 and 5)
-	double testFit;				//the result from the goodness of fit function from EvalUCS
+	// double testFit;				//the result from the goodness of fit function from EvalUCS
 
 	//hold the preference of each slot filled in: pair<preference, cell in solution>
 	vector< pair<int, int> > preferenceScore;
@@ -220,28 +220,26 @@ private:
 		int classes = 0;
 		vector< pair<int,int> > score(courses);
 
+		//worst hold the lecturer that worst course, worstScore hold the preferenceScore of that slot
+		int worst = 0;
+		int worstScore = 0;
+
 		//loop through and see how many courses are taught at a certain time
 		for (int i=0; i<lecturers.size(); i++) {
 			if (solution[i][index] != -1) {
 				classes++;
 				score.push_back( {preference[i][index], i} );
+				
+				//see which slot is the worst one, off all the ones taught in that hour
+				if (score.back().first >= worstScore) {
+					worstScore = score.back().first;
+					worst = score.back().second;
+				}
 			}
 		}
 
 		//test to see if it's compatible or not (have less course than total room count)
-		if (classes > rooms) {
-			//worst hold the lecturer that worst course, worstScore hold the preferenceScore of that slot
-			int worst = 0;
-			int worstScore = 0;
-			
-			//loop through and find the worst cell in the list
-			for (int i=0; i<score.size(); i++) {
-				if (score[i].first > worstScore) {
-					worstScore = score[i].first;
-					worst = score[i].second;
-				}
-			}
-			
+		if (classes > rooms) {			
 			//courseNo hold the course that needs to be relocated
 			int courseNo = score[worst].second * 8 + index;
 
@@ -337,7 +335,7 @@ private:
 		//if this cell can be moved then delete it
 		solution[lecturerNo][index] = -1;
 		roomCount[index]++;
-		courseDay[courseNo].erase( div(index, 7).quot );
+		courseDay[courseNo].erase( div(index, 8).quot );
 		preferenceScore.erase(preferenceScore.begin() + index);
 
 		//move that cell into the right place
@@ -352,6 +350,33 @@ private:
 		return ;
 	}
 
+
+	//for debugging purposes
+	void printData()
+	{
+		fit = 0;
+		for (int i=0; i<preferenceScore.size(); i++) {
+			int lecturerNo = div(preferenceScore[i].second, 40).quot;
+			int slot = div (preferenceScore[i].second, 40).rem;
+
+			cout << preferenceScore[i].first << " " << lecturerNo << " " << slot << endl;
+			if (preferenceScore[i].first != 1) {
+				fit += preferenceScore[i].first;
+			}
+		}
+
+		for (int i=0; i<solution.size(); i++) {
+			for (int m=0; m<solution[0].size(); m++) {
+				if (solution[i][m] != -1) {
+					cout << " \e[92m";
+				}
+				cout << solution[i][m] << "\e[0m, ";
+			}
+			cout << endl;
+		}
+		cout << endl;
+		cout << endl;
+	}
 
 
 public:
@@ -373,7 +398,7 @@ public:
 		}
 		//setup the score
 		fit = 0;
-		testFit = 0;
+		// testFit = 0;
 
 
 		//create a blank solution 
@@ -398,24 +423,30 @@ public:
 		//generate an initial solution of the problem
 		initialSolution(rooms, courses, hours, lecturers, binaryMapping, preference);
 
-		//extend the function
-		extend(rooms, courses, hours, lecturers, binaryMapping, preference);
+		while (1) {
+			//extend the function
+			extend(rooms, courses, hours, lecturers, binaryMapping, preference);
+			printData();
 
-		//mvoe the bad results
-		badCell(rooms, courses, hours, lecturers, binaryMapping, preference);
+			//mvoe the bad results
+			badCell(rooms, courses, hours, lecturers, binaryMapping, preference);
+			printData();
 
-		//output the xml file
-		output();
+			//output the xml file
+			output();
 
-		//generic print out
-		for (int i=0; i<preferenceScore.size(); i++) {
-			cout << preferenceScore[i].first << " " << preferenceScore[i].second << endl;
-			if (preferenceScore[i].first != 1) {
-				fit += preferenceScore[i].first;
+			printData();
+
+			//continue the alogirthm
+			int cont;
+			cin >> cont;
+			if (cont == 1) {
+				break;
 			}
-			
 		}
-		cout << "total score: " << fit << endl;
+
+
+
 
 
 
