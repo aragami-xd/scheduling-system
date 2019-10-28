@@ -181,6 +181,7 @@ private:
 
 
 	//this function will swap out another session for the extended one
+	//it looks a bit like the relocate function, but the other way around
 	bool swap(vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int index, int currentCourse)
 	{
 		//loop from the worst solution to the best solution (skip itself)
@@ -245,12 +246,12 @@ private:
 			int courseNo = score[worst].second * 8 + index;
 
 			//relocate that course
-			relocate(rooms, courses, hours, lecturers, binaryMapping, preference, index, courseNo);
+			relocate(rooms, courses, hours, lecturers, binaryMapping, preference, div(worst, 40).quot, div(worst, 40).rem, courseNo);
 		}
 
 		//see if the next session is a teaching break or not
 		if (solution[lecturerNo][index + 1] != -1) {
-			relocate();
+			relocate(rooms, courses, hours, lecturers, binaryMapping, preference, lecturerNo, index + 1, solution[lecturerNo][index + 1]);
 		}
 	}
 
@@ -269,14 +270,15 @@ private:
 				int courseNo = solution[lecturerNo][slot];
 
 				//relocate that cell
-				relocate(rooms, courses, hours, lecturers, binaryMapping, preference, slot, courseNo);
+				relocate(rooms, courses, hours, lecturers, binaryMapping, preference, lecturerNo, slot, courseNo);
 			}
 		}
 	}
 
 
-	//this funciton will relocate the "invalid" cell another location
-	void relocate(int rooms, int courses, vector<int> &hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int index, int courseNo)
+
+	//this funciton will relocate the "invalid" cell another location (we only need the course, so everything else doesn't matter)
+	void relocate(int rooms, int courses, vector<int> &hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int lecturerNo, int index, int courseNo)
 	{
 		//these 3 values determine the first valid slot with that preference score
 		//idealy, there will be a valid slot with score of 1, but if there is none then we'll have to relocate the value to slot with score of 2 or 5
@@ -296,11 +298,11 @@ private:
 						for (int n=0; n<8; n++) {
 							int slot = i*8 + n;
 							//get the score and see if it can be set as the slot to relocate to or not
-							if (preference[m][slot] == 1 && one == -1 && solution[m][slot] == -1) {
+							if (preference[m][slot] == 1 && one == -1 && solution[m][slot] == -1 && roomCount[slot] > 0) {
 								one = m *40 + i*8 + n;
-							} else if (preference[m][slot] == 2 && two == -1 && solution[m][slot] == -1) {
+							} else if (preference[m][slot] == 2 && two == -1 && solution[m][slot] == -1 && roomCount[slot] > 0) {
 								two = m*40 + i*8 + n;
-							} else if (preference[m][slot] == 5 && five == -1 && solution[m][slot] == -1) {
+							} else if (preference[m][slot] == 5 && five == -1 && solution[m][slot] == -1 && roomCount[slot] > 0) {
 								five = m*40 + i*8 + n;
 							}
 						}
@@ -314,8 +316,40 @@ private:
 			if (one != -1) {
 				break ;
 			}
-
 		}
+
+		//get the index of the best solution to move to (if any)
+		int moveIndex = -1;
+		int finalPreference = 0;
+		if (one != -1) {					//if there is an index stored in any of the three values then set the best one as the final index
+			moveIndex = one;
+			finalPreference = 1;
+		} else if (two != -1) {
+			moveIndex = two;
+			finalPreference = 2;
+		} else if (five != -1) {
+			moveIndex = five;
+			finalPreference = 5;
+		} else {							//if no index can be found at all then just return it and pray to god that it would be improved later on
+			return;
+		}
+
+		//if this cell can be moved then delete it
+		solution[lecturerNo][index] = -1;
+		roomCount[index]++;
+		courseDay[courseNo].erase( div(index, 7).quot );
+		preferenceScore.erase(preferenceScore.begin() + index);
+
+		//move that cell into the right place
+		int newLecturer = div(moveIndex, 40).quot;
+		int slot = div(moveIndex, 40).rem;
+
+		//insert the course into the right place
+		solution[newLecturer][slot] = courseNo;
+		roomCount[slot]--;
+		courseDay[courseNo].insert({moveIndex, finalPreference});
+
+		return ;
 	}
 
 
@@ -367,12 +401,11 @@ public:
 		//extend the function
 		extend(rooms, courses, hours, lecturers, binaryMapping, preference);
 
-
-
+		//mvoe the bad results
+		badCell(rooms, courses, hours, lecturers, binaryMapping, preference);
 
 		//output the xml file
 		output();
-
 
 		//generic print out
 		for (int i=0; i<preferenceScore.size(); i++) {
@@ -383,6 +416,8 @@ public:
 			
 		}
 		cout << "total score: " << fit << endl;
+
+
 
 		return ;
 	}
