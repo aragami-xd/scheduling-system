@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
+#include <map>
 #include <fstream>
 #include <utility>
 #include <algorithm>
@@ -18,8 +19,8 @@ private:
 	int fit;					//the total preference score of values that isn't 1 (i.e. 2 and 5)
 	// double testFit;				//the result from the goodness of fit function from EvalUCS
 
-	//hold the preference of each slot filled in: pair<preference, cell in solution>
-	vector< pair<int, int> > preferenceScore;
+	//hold the preference of each slot filled in: map<cell in solution, preference>
+	map<int, int> preferenceScore;
 
 	//fill up the room of the week
 	vector<int> roomCount;
@@ -75,53 +76,52 @@ private:
 	void initialSolution(int rooms, int courses, vector<int> hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference)
 	{
 		//the conditions
-		//loop through every day of the week
-		for (int i=0; i<5; i++) {
-			//loop through every lecturer
-			for (int m=0; m<lecturers.size(); m++) {
-				//loop through every hour of the day
-				for (int n=0; n<8; n++) {
+		//loop through every lecturer
+		for (int m=0; m<lecturers.size(); m++) {
 
-					//if the lecturer is free at that session and there are still rooms avaiable
-					if ( preference[m][i*8 + n] != 0 && roomCount[i*8 + n] > 0 ) {
-						//loop through every course
-						for (int x=0; x<courses; x++) {
-							//if the lecturer teaches that course, there is time left to teach and the course has not been taught that day
-							if (binaryMapping[x][m] == 1 && hours[x] > 0 && courseDay[x].count(i) == 0) {
-								//number of the course
-								solution[m][i*8 + n] = x;	
+			//loop through 40 hours
+			for (int i=0; i<40; i++) {
 
-								//the cell number in the solution vector and it's preference score		
-								preferenceScore.push_back( {preference[m][i*8 + n], m*40 + i*8 + n} );
+				//if the lecturer is free at that session and there are still rooms avaiable
+				if ( preference[m][i] != 0 && roomCount[i] > 0 ) {
+					//loop through every course
+					for (int x=0; x<courses; x++) {
 
-								//set the course to have been taught today so it can't be taught again
-								courseDay[x].insert(i);
+						//if the lecturer teaches that course, there is time left to teach and the course has not been taught that day
+						if (binaryMapping[x][m] == 1 && hours[x] > 0 && courseDay[x].count( div(i,8).quot ) == 0) {
+							//number of the course
+							solution[m][i] = x;	
 
-								//decrease the total room count
-								roomCount[i*8 + n]--;
+							//the cell number in the solution vector and it's preference score		
+							preferenceScore.insert( {m*40 + i, preference[m][i]} );
 
-								//decrease the hour count
+							//set the course to have been taught today so it can't be taught again
+							courseDay[x].insert( div(i,8).quot );
+
+							//decrease the total room count
+							roomCount[i]--;
+
+							//decrease the hour count
+							hours[x]--;
+
+							//move on to the next hour
+							i++;
+
+							//see if the lecturer can teach the next hour of not
+							if ( i%8 > 0 && preference[m][i] != 0 && roomCount[i] > 0 && hours[x] > 0) {
+								//pretty much like the one above but without setting courseDay (since it's already set)
+								solution[m][i] = x;
+								preferenceScore.insert( {m*40 + i, preference[m][i]} );
+								roomCount[i]--;
 								hours[x]--;
-
-								//move on to the next hour (end of the day will exit the loop)
-								n++;
-
-								//see if the lecturer can teach the next hour of not
-								if (n < 8 && preference[m][i*8 + n] != 0 && roomCount[i*8 + n] > 0 && hours[x] > 0 ) {
-									//pretty much like the one above but without setting courseDay (since it's already set)
-									solution[m][i*8 + n] = x;
-									preferenceScore.push_back( {preference[m][i*8 + n], m*40 + i*8 + n} );
-									roomCount[i*8 + n]--;
-									hours[x]--;
-									n++;
-								}
-
-								break;
+								i++;
 							}
+
+							break;
 						}
 					}
-
 				}
+
 			}
 		}
 
@@ -143,11 +143,11 @@ private:
 	void extend(int rooms, int courses, vector<int> &hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference)
 	{
 		//loop through the entire preferenceScore list to extend every 1 score solutions (if the course has more than 1 hour a week)
-		for (int i=0; i<preferenceScore.size(); i++) {
-			if (preferenceScore[i].first == 1) {
+		for (auto x : preferenceScore) {
+			if (x.second == 1) {
 
-				//extract the data of that slot: lecturerNo, slot (i.e. which session of the week) and courseNumber
-				int slot = preferenceScore[i].second;
+				//extract the data of that slot: lecturerNo, slot (which session of the week) and courseNumber
+				int slot = x.first;
 				int lecturerNo = div(slot, 40).quot;
 				slot = div(slot, 40).rem;
 				int courseNo = solution[lecturerNo][slot];
@@ -160,15 +160,8 @@ private:
 					//if we don't have enough room then we'll try to move the other session away to make room for it
 					if (preference[lecturerNo][slot] == 1) {
 						//if this slot is suitable for an extension, then swap out with another slot
-						bool betterSolution = swap(binaryMapping, preference, i, courseNo);
+						swap(rooms, courses, hours, lecturers, binaryMapping, preference, lecturerNo, slot, courseNo);
 
-						//if you can swap out for a better solution
-						if (betterSolution) {
-							solution[lecturerNo][slot] = courseNo;
-
-							//after the extension is done, validate it
-							validate(rooms, courses, hours, lecturers, binaryMapping, preference, slot, lecturerNo);
-						} 
 					}
 
 				}
@@ -179,35 +172,45 @@ private:
 	}
 
 
-
-	//this function will swap out another session for the extended one
-	//it looks a bit like the relocate function, but the other way around
-	bool swap(vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int index, int currentCourse)
+	//this function will swap a slot out with the slot right after a course as an extension
+	//this function will somewhat be the contrary of relocate
+	void swap(int rooms, int courses, vector<int> &hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int lecturerNo, int index, int courseNo)
 	{
-		//loop from the worst solution to the best solution (skip itself)
-		for (int i=preferenceScore.size() - 1; i>0; i--) {
-			if (i != index) {
-				//extract the data of that current slot: lecturerNo, slot (i.e. which session of the week) and courseNumber
-				int slot = preferenceScore[i].second;
-				int lecturerNo = div(slot, 40).quot;
-				slot = div(slot, 40).rem;
-				int courseNo = solution[lecturerNo][slot];
+		//worstScore holds the preferenceScore of the worst cell, worst holds the lecturerNo and slot of the worst cell
+		int worstScore = 0;
+		pair<int,int> worst = {-1,-1};
 
-				//if this course is the current course then delete this course, change the room data and move on
-				if (currentCourse == courseNo) {
-					preferenceScore.erase(preferenceScore.begin() + i);
-					solution[lecturerNo][slot] = -1;
-					roomCount[slot]++;
+		//loop through the preference list, after this loop you may get the worst cell to swap to
+		for (auto x : preferenceScore) {
+			int newLecturer = div(x.first, 40).quot;
+			int slot = div(x.second, 40).rem;
 
-					//erase the value in the set (i.e. the course is not taught in that day anymore)
-					courseDay[currentCourse].erase( div(slot, 8).quot );
-					return true;
-				}
+			//if it's the worst cell and the same course as courseNo
+			if (solution[newLecturer][slot] == courseNo && preference[newLecturer][slot] > worstScore) {
+				worstScore = x.second;
+				worst = {newLecturer, slot};
 			}
-
 		}
 
-		return false;
+		//if you can't swap with anything, return
+		if (worst.first == -1) {
+			return ;
+		}
+
+		//delete the worst cell
+		solution[worst.first][worst.second] = -1;
+		courseDay[courseNo].erase(worst.second % 8);
+		roomCount[worst.second]++;
+		preferenceScore.erase(worst.first * 40 + worst.second);
+
+		//add to the current cell
+		solution[lecturerNo][index] = courseNo;
+		roomCount[index]++;
+		preferenceScore.insert( {lecturerNo * 40 + index, 1} );
+
+		//validate the solution after the extension
+		validate(rooms, courses, hours, lecturers, binaryMapping, preference, index, lecturerNo);
+		
 	}
 
 
@@ -216,24 +219,21 @@ private:
 	void validate(int rooms, int courses, vector<int> &hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int index, int lecturerNo)
 	{
 		//see if there is sufficient room for that time of the day
-		//score vector hold the preference value and the lecturer that teach that course
 		int classes = 0;
-		vector< pair<int,int> > score(courses);
 
-		//worst hold the lecturer that worst course, worstScore hold the preferenceScore of that slot
-		int worst = 0;
+		//worst hold the location of that worst course, worstScore hold the preferenceScore of that slot
+		pair<int,int> worst = {-1,-1};
 		int worstScore = 0;
 
 		//loop through and see how many courses are taught at a certain time
 		for (int i=0; i<lecturers.size(); i++) {
 			if (solution[i][index] != -1) {
 				classes++;
-				score.push_back( {preference[i][index], i} );
 				
 				//see which slot is the worst one, off all the ones taught in that hour
-				if (score.back().first >= worstScore) {
-					worstScore = score.back().first;
-					worst = score.back().second;
+				if (preference[i][index] >= worstScore) {
+					worstScore = preference[i][index];
+					worst = {i, index};
 				}
 			}
 		}
@@ -241,15 +241,21 @@ private:
 		//test to see if it's compatible or not (have less course than total room count)
 		if (classes > rooms) {			
 			//courseNo hold the course that needs to be relocated
-			int courseNo = score[worst].second * 8 + index;
+			int courseNo = preference[worst.first][worst.second];
 
-			//relocate that course
-			relocate(rooms, courses, hours, lecturers, binaryMapping, preference, div(worst, 40).quot, div(worst, 40).rem, courseNo);
+			//relocate that course to another place
+			relocate(rooms, courses, hours, lecturers, binaryMapping, preference, worst.first, worst.second, courseNo);
 		}
+		
 
 		//see if the next session is a teaching break or not
-		if (solution[lecturerNo][index + 1] != -1) {
-			relocate(rooms, courses, hours, lecturers, binaryMapping, preference, lecturerNo, index + 1, solution[lecturerNo][index + 1]);
+		index++;
+		if (solution[lecturerNo][index] != -1) {
+			//course to be relcated
+			int courseNo = preference[worst.first][worst.second];
+
+			//relocate that course to another place
+			relocate(rooms, courses, hours, lecturers, binaryMapping, preference, lecturerNo, index, courseNo);
 		}
 	}
 
@@ -258,11 +264,12 @@ private:
 	//this function will move all of the worst solution away from it's slot
 	void badCell(int rooms, int courses, vector<int> hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference)
 	{
-		//loop from the back to the front of the preferenceScore vector and relocate every 5 or 2 score cells possible
-		for (int i=preferenceScore.size() - 1; i>=0; i--) {
-			if (preferenceScore[i].first != 1) {
+		//loop through preferenceScore and relocate every 5 or 2 score cells possible
+		for (auto x : preferenceScore) {
+			if (x.second != 1) {
+
 				//extract the data of that current slot: lecturerNo, slot (i.e. which session of the week) and courseNumber
-				int slot = preferenceScore[i].second;
+				int slot = x.first;
 				int lecturerNo = div(slot, 40).quot;
 				slot = div(slot, 40).rem;
 				int courseNo = solution[lecturerNo][slot];
@@ -275,102 +282,109 @@ private:
 
 
 
-	//this funciton will relocate the "invalid" cell another location (we only need the course, so everything else doesn't matter)
+	//this function will relocate a slot to another place
 	void relocate(int rooms, int courses, vector<int> &hours, vector<string> &lecturers, vector<vector<int>> &binaryMapping, vector<vector<int>> &preference, int lecturerNo, int index, int courseNo)
 	{
 		//these 3 values determine the first valid slot with that preference score
 		//idealy, there will be a valid slot with score of 1, but if there is none then we'll have to relocate the value to slot with score of 2 or 5
-		//it will hold the value of which lecture will teach it, at which day and which hour of that day
-		int one = -1, two = -1, five = -1;
+		//it will hold the value of which lecture will teach it at which slot
+		pair<int,int> one = {-1,-1}, two = {-1,-1}, five = {-1,-1};
 
-		//loop through 5 days to see which in which day the course has not been taught in so it can move there
-		for (int i=0; i<5; i++) {
+		//loop through all 40 hours and move on if the course is not taught that day
+		for (int i=0; i<40; i++) {
 			if (courseDay[courseNo].count(i) == 0) {
 
 				//loop through every lecturer
 				for (int m=0; m<lecturers.size(); m++) {
-					//if lecturer teaches that course
-					if (binaryMapping[courseNo][m] == 1) {
 
-						//loop through 8 hours of the day
-						for (int n=0; n<8; n++) {
-							int slot = i*8 + n;
-							//get the score and see if it can be set as the slot to relocate to or not
-							if (preference[m][slot] == 1 && one == -1 && solution[m][slot] == -1 && roomCount[slot] > 0) {
-								one = m *40 + i*8 + n;
-							} else if (preference[m][slot] == 2 && two == -1 && solution[m][slot] == -1 && roomCount[slot] > 0) {
-								two = m*40 + i*8 + n;
-							} else if (preference[m][slot] == 5 && five == -1 && solution[m][slot] == -1 && roomCount[slot] > 0) {
-								five = m*40 + i*8 + n;
+					//if lecturer teaches that course and there is room at that time
+					if (binaryMapping[courseNo][m] == 1 && roomCount[i] > 0) {
+						//if there are no courses taught before and after this course
+						if ( solution[m][i] == -1 && (solution[m][i] == -1 || i%8==0) && (solution[m][i] == -1 || i%8==7) ) {
+							if (preference[m][i] == 1 && one.first == -1) {
+								one = {m, i};
+							} else if (preference[m][i] == 2 && two.first == -1) {
+								two = {m, i};
+							} else if (preference[m][i] == 5 && five.first == -1) {
+								five = {m, i};
 							}
 						}
-
 					}
+
 				}
 
 			}
 
 			//if we have found a valid slot with score of 1
-			if (one != -1) {
+			if (one.first != -1) {
 				break ;
 			}
 		}
 
 		//get the index of the best solution to move to (if any)
-		int moveIndex = -1;
+		pair<int,int> moveIndex = {-1,-1};
 		int finalPreference = 0;
-		if (one != -1) {					//if there is an index stored in any of the three values then set the best one as the final index
+		if (one.first != -1) {					//if there is an index stored in any of the three values then set the best one as the final index
 			moveIndex = one;
 			finalPreference = 1;
-		} else if (two != -1) {
+		} else if (two.first != -1) {
 			moveIndex = two;
 			finalPreference = 2;
-		} else if (five != -1) {
+		} else if (five.first != -1) {
 			moveIndex = five;
 			finalPreference = 5;
 		} else {							//if no index can be found at all then just return it and pray to god that it would be improved later on
-			return;
+			return ;
 		}
+
 
 		//if this cell can be moved then delete it
 		solution[lecturerNo][index] = -1;
 		roomCount[index]++;
 		courseDay[courseNo].erase( div(index, 8).quot );
-		preferenceScore.erase(preferenceScore.begin() + index);
+		preferenceScore.erase(lecturerNo * 40 + index);
 
 		//move that cell into the right place
-		int newLecturer = div(moveIndex, 40).quot;
-		int slot = div(moveIndex, 40).rem;
+		int newLecturer = moveIndex.first;
+		int slot = moveIndex.second;
 
 		//insert the course into the right place
 		solution[newLecturer][slot] = courseNo;
 		roomCount[slot]--;
-		courseDay[courseNo].insert({moveIndex, finalPreference});
+		courseDay[courseNo].insert( slot % 8 );
+		preferenceScore.insert( {newLecturer * 40 + slot, finalPreference} );
 
 		return ;
 	}
+
 
 
 	//for debugging purposes
 	void printData()
 	{
 		fit = 0;
-		for (int i=0; i<preferenceScore.size(); i++) {
-			int lecturerNo = div(preferenceScore[i].second, 40).quot;
-			int slot = div (preferenceScore[i].second, 40).rem;
+		for (auto x : preferenceScore) {
+			int lecturerNo = div(x.first, 40).quot;
+			int slot = div (x.first, 40).rem;
 
-			cout << preferenceScore[i].first << " " << lecturerNo << " " << slot << endl;
-			if (preferenceScore[i].first != 1) {
-				fit += preferenceScore[i].first;
+			cout << x.second << " " << lecturerNo << " " << slot << endl;
+			if (x.second != 1) {
+				fit += x.second;
 			}
 		}
+		cout << "total score: " << fit << endl; 
 
 		for (int i=0; i<solution.size(); i++) {
 			for (int m=0; m<solution[0].size(); m++) {
 				if (solution[i][m] != -1) {
 					cout << " \e[92m";
 				}
-				cout << solution[i][m] << "\e[0m, ";
+				cout << solution[i][m] << "\e[0m,";
+
+				if (m % 8 == 7) {
+					cout << "    ";
+				}
+
 			}
 			cout << endl;
 		}
@@ -428,21 +442,21 @@ public:
 			extend(rooms, courses, hours, lecturers, binaryMapping, preference);
 			printData();
 
+			if (fit == 0) {
+				break;
+			}
+
 			//mvoe the bad results
 			badCell(rooms, courses, hours, lecturers, binaryMapping, preference);
 			printData();
 
-			//output the xml file
-			output();
-
-			printData();
-
 			//continue the alogirthm
-			int cont;
-			cin >> cont;
-			if (cont == 1) {
+			if (fit == 0) {
 				break;
 			}
+
+			//output the xml file
+			output();
 		}
 
 
