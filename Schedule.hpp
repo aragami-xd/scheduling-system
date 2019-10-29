@@ -45,7 +45,7 @@ private:
 				//add individual numbers in, followed by a comma
 				xml << to_string( solution[i][m] ) << ",";	
 				if (m % 8 == 7) {			//add 4 spaces between each day
-					xml << "    ";
+					xml << "  ";
 				}					
 			}
 
@@ -289,53 +289,33 @@ private:
 		//these 3 values determine the first valid slot with that preference score
 		//idealy, there will be a valid slot with score of 1, but if there is none then we'll have to relocate the value to slot with score of 2 or 5
 		//it will hold the value of which lecture will teach it at which slot
-		pair<int,int> one = {-1,-1}, two = {-1,-1}, five = {-1,-1};
+		pair<int,int> best = {-1,-1};
+		int bestScore = 6;
 
 		//loop through all 40 hours and move on if the course is not taught that day
 		for (int i=0; i<40; i++) {
 			if (courseDay[courseNo].count(i) == 0) {
-
 				//loop through every lecturer
 				for (int m=0; m<lecturers.size(); m++) {
 
 					//if lecturer teaches that course and there is room at that time
-					if (binaryMapping[courseNo][m] == 1 && roomCount[i] > 0) {
-						//if there are no courses taught before and after this course
-						if ( solution[m][i] == -1 && (solution[m][i] == -1 || i%8==0) && (solution[m][i] == -1 || i%8==7) ) {
-							if (preference[m][i] == 1 && one.first == -1) {
-								one = {m, i};
-							} else if (preference[m][i] == 2 && two.first == -1) {
-								two = {m, i};
-							} else if (preference[m][i] == 5 && five.first == -1) {
-								five = {m, i};
-							}
-						}
+					//if there are no courses taught before and after this course and this cell is better than the current best cell
+					if (binaryMapping[courseNo][m] == 1 && roomCount[i] > 0 && preference[m][i] < bestScore && solution[m][i] == -1 && (solution[m][i] == -1 || i%8==0) && (solution[m][i] == -1 || i%8==7) ) {
+						best = {m,i};
+						bestScore = preference[m][i];
 					}
 
 				}
-
 			}
 
 			//if we have found a valid slot with score of 1
-			if (one.first != -1) {
+			if (bestScore == 1) {
 				break ;
 			}
 		}
 
-		//get the index of the best solution to move to (if any)
-		pair<int,int> moveIndex = {-1,-1};
-		int finalPreference = 0;
-		if (one.first != -1) {					//if there is an index stored in any of the three values then set the best one as the final index
-			moveIndex = one;
-			finalPreference = 1;
-		} else if (two.first != -1) {
-			moveIndex = two;
-			finalPreference = 2;
-		} else if (five.first != -1) {
-			moveIndex = five;
-			finalPreference = 5;
-		} else {							//if no index can be found at all then just return it and pray to god that it would be improved later on
-			cout << "fatal error: can't find anywhere to relocate" << endl;
+		if (best.first == -1) {
+			cout << "fatal error: cannot relocate to anywhere" << endl;
 			return ;
 		}
 
@@ -347,14 +327,14 @@ private:
 		preferenceScore.erase(lecturerNo * 40 + index);
 
 		//move that cell into the right place
-		int newLecturer = moveIndex.first;
-		int slot = moveIndex.second;
+		int newLecturer = best.first;
+		int slot = best.second;
 
 		//insert the course into the right place
 		solution[newLecturer][slot] = courseNo;
 		roomCount[slot]--;
 		courseDay[courseNo].insert( slot % 8 );
-		preferenceScore.insert( {newLecturer * 40 + slot, finalPreference} );
+		preferenceScore.insert( {newLecturer * 40 + slot, bestScore} );
 
 		return ;
 	}
@@ -437,22 +417,28 @@ public:
 
 
 		//generate an initial solution of the problem
+		cout << "\e[32mINITIAL SOLUTION\e[0m" << endl;
 		initialSolution(rooms, courses, hours, lecturers, binaryMapping, preference);
+		printData();
 
+		//keep improving the result until you get the best score or run out of time
 		while (1) {
 			//extend the function
+			cout << "\e[31mEXTEND FUNCTION\e[0m" << endl; 
 			extend(rooms, courses, hours, lecturers, binaryMapping, preference);
 			printData();
 
+			//stop the algorithm once you can't improve it anymore
 			if (fit == 0) {
 				break;
 			}
 
 			//mvoe the bad results
+			cout << "\e[36mBAD_CELL FUNCTION\e[0m" << endl; 
 			badCell(rooms, courses, hours, lecturers, binaryMapping, preference);
 			printData();
 
-			//continue the alogirthm
+			//stop the algorithm once you can't improve it anymore
 			if (fit == 0) {
 				break;
 			}
@@ -460,10 +446,6 @@ public:
 			//output the xml file
 			output();
 		}
-
-
-
-
 
 
 		return ;
