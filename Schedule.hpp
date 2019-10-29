@@ -194,6 +194,7 @@ private:
 
 		//if you can't swap with anything, return
 		if (worst.first == -1) {
+			cout << "fatal error: can't find any place to swap" << endl;
 			return ;
 		}
 
@@ -334,6 +335,7 @@ private:
 			moveIndex = five;
 			finalPreference = 5;
 		} else {							//if no index can be found at all then just return it and pray to god that it would be improved later on
+			cout << "fatal error: can't find anywhere to relocate" << endl;
 			return ;
 		}
 

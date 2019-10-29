@@ -73,5 +73,5 @@ int main()
 	vector<string> lecturers = {"Cruz", "Mingyu", "Cheryl", "Fred", "Brad", "Marcus"};
 
 
-	schedule.generate(rooms, courses, hours, names, lecturers, binaryMapping, preference);
+schedule.generate(rooms, courses, hours, names, lecturers, binaryMapping, preference);
 }
