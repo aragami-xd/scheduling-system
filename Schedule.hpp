@@ -17,7 +17,7 @@ private:
 	
 	//score of fit
 	int fit;					//the total preference score of values that isn't 1 (i.e. 2 and 5)
-	// double testFit;				//the result from the goodness of fit function from EvalUCS
+	double testFit;				//the result from the goodness of fit function from EvalUCS
 
 	//hold the preference of each slot filled in: map<cell in solution, preference>
 	map<int, int> preferenceScore;
@@ -161,7 +161,7 @@ private:
 					if (preference[lecturerNo][slot] == 1) {
 						//if this slot is suitable for an extension, then swap out with another slot
 						swap(rooms, courses, hours, lecturers, binaryMapping, preference, lecturerNo, slot, courseNo);
-
+						output();
 					}
 
 				}
@@ -300,7 +300,7 @@ private:
 
 					//if lecturer teaches that course and there is room at that time
 					//if there are no courses taught before and after this course and this cell is better than the current best cell
-					if (binaryMapping[courseNo][m] == 1 && roomCount[i] > 0 && preference[m][i] < bestScore && solution[m][i] == -1 && (solution[m][i] == -1 || i%8==0) && (solution[m][i] == -1 || i%8==7) ) {
+					if (binaryMapping[courseNo][m] == 1 && roomCount[i] > 0 && preference[m][i] < bestScore && preference[m][i] != 0 && solution[m][i] == -1 && (i%8==0 || solution[m][i] == -1) && (i%8==7 || solution[m][i] == -1) ) {
 						best = {m,i};
 						bestScore = preference[m][i];
 					}
@@ -322,6 +322,7 @@ private:
 
 		//if this cell can be moved then delete it
 		solution[lecturerNo][index] = -1;
+		cout << "remove course at " << lecturerNo << " " << index << endl;
 		roomCount[index]++;
 		courseDay[courseNo].erase( div(index, 8).quot );
 		preferenceScore.erase(lecturerNo * 40 + index);
@@ -332,6 +333,7 @@ private:
 
 		//insert the course into the right place
 		solution[newLecturer][slot] = courseNo;
+		cout << "set solution to " << newLecturer << " " << slot << endl;
 		roomCount[slot]--;
 		courseDay[courseNo].insert( slot % 8 );
 		preferenceScore.insert( {newLecturer * 40 + slot, bestScore} );
@@ -375,6 +377,29 @@ private:
 	}
 
 
+	//verify the final output, for degbugging purposes
+	void verifyResult(int rooms, int courses, vector<int> hours, vector<string> lecturers, vector<vector<int>> binaryMapping, vector<vector<int>> preference)
+	{
+		vector<int> day(courses);
+		fill(day.begin(), day.end(), 0);
+
+		//loop through every day, lecturer and hour of the day
+		for (int i=0; i<5; i++) {
+			for (int m=0; m<lecturers.size(); m++) {
+				for (int n=0; n<8; n++) {
+					int slot = i*8 + n;
+					//if the lecturer teaches that course
+					if ( solution[m][slot] != -1 && preference[m][slot] != 0 ) {
+						//different error codes
+						int code = -1;
+
+						//error case 1: 2 consecutive courses are not the same
+					}
+				}
+			}
+		}
+	}
+
 public:
 	void generate(int rooms, int courses, vector<int> hours, vector<string> names, vector<string> lecturers, vector<vector<int>> binaryMapping, vector<vector<int>> preference)
 	{
@@ -394,7 +419,7 @@ public:
 		}
 		//setup the score
 		fit = 0;
-		// testFit = 0;
+		testFit = 0;
 
 
 		//create a blank solution 
@@ -408,7 +433,8 @@ public:
 		//change every lunch break to busy
 		for (int i=0; i<lecturers.size(); i++) {
 			for (int m=0; m<40; m++) {
-				if (m % 8 == 3) {						//lunch break = 4th slot of the day (index 3)
+				//lunch break = 4th slot of the day (index 3)
+				if (m % 8 == 3) {						
 					preference[i][m] = 0;
 				}
 			}
@@ -428,23 +454,28 @@ public:
 			extend(rooms, courses, hours, lecturers, binaryMapping, preference);
 			printData();
 
+			//output the xml file
+			output();
+
 			//stop the algorithm once you can't improve it anymore
 			if (fit == 0) {
 				break;
 			}
+
 
 			//mvoe the bad results
 			cout << "\e[36mBAD_CELL FUNCTION\e[0m" << endl; 
 			badCell(rooms, courses, hours, lecturers, binaryMapping, preference);
 			printData();
 
+			//output the xml file
+			output();
+
 			//stop the algorithm once you can't improve it anymore
 			if (fit == 0) {
 				break;
 			}
-
-			//output the xml file
-			output();
+		
 		}
 
 

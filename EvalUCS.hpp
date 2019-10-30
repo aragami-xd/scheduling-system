@@ -62,7 +62,7 @@ public:
 
      // match on keyword read in number, assign to var and continue;
      if(parseField<int>("Rooms",input,rooms)){
-	cout << "r: " << rooms << endl;
+	cout << "rooms: " << rooms  ;
       }else{
         // there was a problem reading... report and return
         cerr << "inconsistent file - first line should have Rooms" << endl;
@@ -73,7 +73,7 @@ public:
       status=getline(sr,input);
 
       if(parseField<int>("Courses",input,mC)){
-	cout << "mCourses: " << mC << endl;
+	cout << " mCourses: " << mC << endl;
 	;
       }else{
         // there was a problem reading... report and return
@@ -96,10 +96,10 @@ public:
        cHours.push_back(stoi(next)); 
     }
 
-    cout << "hours read" << endl;
-    for (int i=0;i<mC;i++) 
-            cout << cHours[i] << " ";
-    cout << endl;
+    cout << "hours read," ;
+    // for (int i=0;i<mC;i++) 
+    //      cout << cHours[i] << " ";
+    // cout << endl;
 
     // now we get the line with the course names
     status=getline(sr,input);  // read the line
@@ -112,19 +112,19 @@ public:
        cNames.push_back(removeDoubleSpace(next)); 
     }
 
-    cout << "names read" << endl;
-    for (int i=0;i<mC;i++) 
-	cout << cNames[i] <<  endl;
+    cout << " course names read" << endl;
+    //for (int i=0;i<mC;i++) 
+    //   cout << cNames[i] <<  endl;
 
      // read lecture numbers 
      status=getline(sr,input);
 
      if(parseField<int>("Lecturers",input,nL)){
-	cout << "lecturers: " << nL << endl;
+	cout << "lecturers: " << nL ;
 	;
       }else{
         // there was a problem reading... report and return
-        cerr << "inconsistent file - second line should have course number" << endl;
+        cerr << "inconsistent file -  line should have lecturer number" << endl;
         return false;
       }
 
@@ -138,9 +138,9 @@ public:
        lNames.push_back(removeDoubleSpace(next)); 
     }
 
-    cout << "lecture names read" << endl;
-    for (int i=0;i<nL;i++) 
-	cout << lNames[i] <<  endl;
+    cout << " lecture names read" << endl;
+    // for (int i=0;i<nL;i++) 
+    //cout << lNames[i] <<  endl;
 
 
     status=getline(sr,input);  // read the  comment line for TL 
@@ -173,14 +173,16 @@ public:
              LP[i][j] = stoi(next);
              j++;
          }
+        if (j != 40)
+            cout << "Warning: line size is" << j << " instead of 40" << endl; 
      }
 
     cout << "LP  read" << endl;
-    for (int i=0;i<nL;i++) {
-       for (int j=0;j<40;j++) 
-	cout << LP[i][j] <<  " ";
-    cout << endl;
-    }
+    // for (int i=0;i<nL;i++) {
+    //   for (int j=0;j<40;j++) 
+    //       cout << LP[i][j] <<  " ";
+    //   cout << endl;
+    // }
 
     return true;
   }
@@ -204,7 +206,8 @@ public:
     
 
   static string removeDoubleSpace(string s){
-    return replaceGeneric(s,"  "," ");
+   string res =replaceGeneric(s,"  "," ");
+   return replaceGeneric(res," ","");
   }
 
   
@@ -244,16 +247,17 @@ public:
              j++;
          }
          if (j != 40)  
-             cout << j << endl;
+             cout << "line " << i << " size is " << j << " instead of 40"  << endl;
          
      }
 
-    cout << "timetable"  << endl;
+    cout << "Timetable read "  << endl;
+    /*
     for (int i=0;i<courses;i++)  {
       for (int j=0;j<40;j++)  
             cout <<  Timetable[i][j]  << " " ;
       cout << endl;
-    }
+    } */
 
   }catch(int e){
       // exception in processing return false
@@ -261,12 +265,59 @@ public:
       return false;
        }
 
-    cout << "read retruns true" << endl;
     return true;
 
     }
 
 
+   static void printTimetable(vector < vector <int>>  solution, vector <string> cNames, vector <string>  lNames) {
+
+   vector < string> weekdays = {"             Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+
+   vector < string> labelHours = {" 9-10", "10-11", "11-12","Lunch", "13-14", "14-15", "15-16","16-17"};//8 working hours 
+ 
+   
+   vector < vector <int> > copysol = solution;
+   int courses = 5;
+   int index=0;
+   int hoursWeek=40;
+ 
+   for (int i = 0; i < weekdays.size(); i++) {
+            cout << weekdays[i] << "          ";
+        }
+   cout << endl;
+   
+   cout << "-----------------------------------------------------------------------------------------------" << endl;
+   for (int i = 0; i < labelHours.size(); i++) {
+     // iterate over solution for first course for each day 
+    bool found ;    
+    bool next = true;
+    while (next) {
+        next = false;
+        cout << labelHours[i];
+        for (int j = i; j < hoursWeek ; j+=8) {
+        found = false;
+         for (int k = 0; k < courses; k++) {
+            if(copysol[k][j]!=-1) {
+                 if (!found)  {
+                      found  = true;
+                      cout <<  "  " << std::setw (4) <<  cNames[k] << "("  << std::left  << std::setw (6) << lNames[copysol[k][j]] << ")    " ;  
+                      copysol[k][j] = -1;          
+                      }
+                 else {
+                       next = true;
+                       break;
+                  }
+              }
+        }
+         if (!found)
+                 cout << "                  ";   
+        }
+        cout << endl;
+     }
+        
+    }
+  }
     
   static int checkConstraints(vector < vector <int>>  solution, int rooms, vector <int> hoursperCourse, vector < vector <int>>  LP, vector <string> cNames, vector <string>  lNames){
         //violated constraint 
@@ -301,6 +352,11 @@ public:
             for (int j = 0; j < hoursWeek; j++) {
                 il=solution[i][j];//indice lecturer 
                 if(il!=-1){
+                    // check lecturer is allocated to course 
+                    if (ProblemUCS::TL[i][il] != 1) {
+                       cout << "Major Violation: lecturer " << lNames[il] <<  " is not allocated to course" << cNames[i] << endl;
+                        return 100000;
+                    }
                     //Lunch constraint  positions 3,11,19,27,35
                     if(j%8 == 3) {
                         cout << "Constraint Violation: class  for lecturer" << lNames[il] <<  " is allocated at lunch break" << endl;
@@ -355,7 +411,7 @@ public:
                 }// j != -1 
                 
                 //check when is a new day 
-                if((j > 0) && (j%8==0)){
+                if(j%8==7){
                     //a new day is starting 
                     day++;
                     //A lecture with more than two hours per day                          
@@ -372,7 +428,7 @@ public:
                                     int failedConstraints){
         
         int hoursWeek=40;
-        int il;//indice the lecturer
+        int il;//index of lecturer allocated to it 
         double penalization;
         //double
         //i is rows 

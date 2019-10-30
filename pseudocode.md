@@ -142,3 +142,7 @@ moving to another slot somehow, i'm still working on it, but for now this seems 
 
 
 so after having the ascendingly sorted preference score vector, i'll try to extend every 1 hour session into 2 hour session. the reason is that teaching 2 hour session is always more "efficient" than 1: while there is more room for room overflow (pardon the pun), it opens up more free space to relocate the bad slots
+
+
+
+so i think the code works now. i have managed to generate a solution, though it's not a viable solution. during the swap or the relocate function, i have messed up the initial solution somehow. but, it looks like this algorithm will be able to give me a correct final solution

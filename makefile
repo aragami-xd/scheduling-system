@@ -8,7 +8,7 @@ all: Schedule.hpp main.cpp
 #some intput will cause an infinite loop anyways
 test: Schedule.hpp main.cpp
 	g++ Schedule.hpp main.cpp
-	timeout 1s ./a.out
+	timeout 10s ./a.out
 	more solution.xml
 
 #clean the gch file, a.out file and the solution
