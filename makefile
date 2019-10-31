@@ -4,11 +4,11 @@ all: Schedule.hpp main.cpp
 
 #compile the program and run it
 #ucs files will be added later when they're fixed
-#pretty confident that the program will run pretty fast so just stop it after 1 seconds
+#pretty confident that the program will run pretty fast so just stop it after 1 seconds (might be changed)
 #some intput will cause an infinite loop anyways
 test: Schedule.hpp main.cpp
 	g++ Schedule.hpp main.cpp
-	timeout 10s ./a.out
+	timeout 2s ./a.out
 	more solution.xml
 
 #clean the gch file, a.out file and the solution

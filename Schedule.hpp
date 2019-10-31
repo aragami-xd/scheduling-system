@@ -154,11 +154,12 @@ private:
 
 				//if there is no occupied slot before and after this one in the solution and the course has more than 1 hour to teach per week
 				if ( (slot % 8 == 0 || solution[lecturerNo][slot-1] == -1) && slot % 8 < 7 && solution[lecturerNo][slot+1] == -1 && hours[courseNo] > 1) {
+					// cout << "attempt to extend " << lecturerNo << " " << lecturerNo << endl;
 					slot++;
 
-					//check and see if the next session has the score of 1 or not, regardless of room constraint
+					//check and see if the next session has the score less than 5 or not, regardless of room constraint
 					//if we don't have enough room then we'll try to move the other session away to make room for it
-					if (preference[lecturerNo][slot] == 1) {
+					if (preference[lecturerNo][slot] != 5) {
 						//if this slot is suitable for an extension, then swap out with another slot
 						swap(rooms, courses, hours, lecturers, binaryMapping, preference, lecturerNo, slot, courseNo);
 						output();
@@ -200,7 +201,7 @@ private:
 
 		//delete the worst cell
 		solution[worst.first][worst.second] = -1;
-		courseDay[courseNo].erase(worst.second % 8);
+		courseDay[courseNo].erase( div(worst.second, 8).quot );
 		roomCount[worst.second]++;
 		preferenceScore.erase(worst.first * 40 + worst.second);
 
@@ -294,13 +295,19 @@ private:
 
 		//loop through all 40 hours and move on if the course is not taught that day
 		for (int i=0; i<40; i++) {
-			if (courseDay[courseNo].count(i) == 0) {
+			//cout << courseNo << " slot " << div(i,8).quot << " is " << courseDay[courseNo].count( div(i,8).quot ) << endl;
+			cout << "course " << courseNo << " ";
+			for (auto x : courseDay[courseNo]) {
+				cout << "(" << x << ")" << " ";
+			}
+			cout << endl;
+			if (courseDay[courseNo].count( div(i,8).quot ) == 0) {
 				//loop through every lecturer
 				for (int m=0; m<lecturers.size(); m++) {
 
 					//if lecturer teaches that course and there is room at that time
 					//if there are no courses taught before and after this course and this cell is better than the current best cell
-					if (binaryMapping[courseNo][m] == 1 && roomCount[i] > 0 && preference[m][i] < bestScore && preference[m][i] != 0 && solution[m][i] == -1 && (i%8==0 || solution[m][i] == -1) && (i%8==7 || solution[m][i] == -1) ) {
+					if (binaryMapping[courseNo][m] == 1 && roomCount[i] > 0 && preference[m][i] < bestScore && preference[m][i] != 0 && solution[m][i] == -1 && (i%8==0 || solution[m][i-1] == -1) && (i%8==7 || solution[m][i+1] == -1) ) {
 						best = {m,i};
 						bestScore = preference[m][i];
 					}
@@ -322,7 +329,6 @@ private:
 
 		//if this cell can be moved then delete it
 		solution[lecturerNo][index] = -1;
-		cout << "remove course at " << lecturerNo << " " << index << endl;
 		roomCount[index]++;
 		courseDay[courseNo].erase( div(index, 8).quot );
 		preferenceScore.erase(lecturerNo * 40 + index);
@@ -333,9 +339,8 @@ private:
 
 		//insert the course into the right place
 		solution[newLecturer][slot] = courseNo;
-		cout << "set solution to " << newLecturer << " " << slot << endl;
 		roomCount[slot]--;
-		courseDay[courseNo].insert( slot % 8 );
+		courseDay[courseNo].insert( div(slot, 8).quot );
 		preferenceScore.insert( {newLecturer * 40 + slot, bestScore} );
 
 		return ;
@@ -449,13 +454,15 @@ public:
 
 		//keep improving the result until you get the best score or run out of time
 		while (1) {
+			int copyFit = fit;
+
 			//extend the function
 			cout << "\e[31mEXTEND FUNCTION\e[0m" << endl; 
 			extend(rooms, courses, hours, lecturers, binaryMapping, preference);
 			printData();
 
 			//output the xml file
-			output();
+			if (fit < copyFit) output();
 
 			//stop the algorithm once you can't improve it anymore
 			if (fit == 0) {
@@ -469,7 +476,7 @@ public:
 			printData();
 
 			//output the xml file
-			output();
+			if (fit < copyFit) output();
 
 			//stop the algorithm once you can't improve it anymore
 			if (fit == 0) {
