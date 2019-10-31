@@ -126,11 +126,11 @@ private:
 		}
 
 		//validation, in case with a specific test input i can't generate any valid output from this
-		// for (int i=0; i<hours.size(); i++) {
-		// 	if (hours[i] > 0) {
-		// 		cout << "generation failed: course " << i << " has " << hours[i] << " hours remaining" << endl;
-		// 	}
-		// }
+		for (int i=0; i<hours.size(); i++) {
+			if (hours[i] > 0) {
+				cout << "generation failed: course " << i << " has " << hours[i] << " hours remaining" << endl;
+			}
+		}
 
 		return ;
 	}
@@ -155,7 +155,7 @@ private:
 				//if there is no occupied slot before and after this one in the solution and the course has more than 1 hour to teach per week
 				if ( (slot % 8 == 0 || solution[lecturerNo][slot-1] == -1) && slot % 8 < 7 && solution[lecturerNo][slot+1] == -1 && hours[courseNo] > 1) {
 					// cout << "attempt to extend " << lecturerNo << " " << lecturerNo << endl;
-					slot++;
+					// slot++;
 
 					//check and see if the next session has the score less than 5 or not, regardless of room constraint
 					//if we don't have enough room then we'll try to move the other session away to make room for it
@@ -195,7 +195,7 @@ private:
 
 		//if you can't swap with anything, return
 		if (worst.first == -1) {
-			cout << "fatal error: can't find any place to swap" << endl;
+			// cout << "fatal error: can't find any place to swap" << endl;
 			return ;
 		}
 
@@ -295,12 +295,6 @@ private:
 
 		//loop through all 40 hours and move on if the course is not taught that day
 		for (int i=0; i<40; i++) {
-			//cout << courseNo << " slot " << div(i,8).quot << " is " << courseDay[courseNo].count( div(i,8).quot ) << endl;
-			cout << "course " << courseNo << " ";
-			for (auto x : courseDay[courseNo]) {
-				cout << "(" << x << ")" << " ";
-			}
-			cout << endl;
 			if (courseDay[courseNo].count( div(i,8).quot ) == 0) {
 				//loop through every lecturer
 				for (int m=0; m<lecturers.size(); m++) {
@@ -322,7 +316,7 @@ private:
 		}
 
 		if (best.first == -1) {
-			cout << "fatal error: cannot relocate to anywhere" << endl;
+			// cout << "fatal error: cannot relocate to anywhere" << endl;
 			return ;
 		}
 
@@ -356,7 +350,7 @@ private:
 			int lecturerNo = div(x.first, 40).quot;
 			int slot = div (x.first, 40).rem;
 
-			cout << x.second << " " << lecturerNo << " " << slot << endl;
+			// cout << x.second << " " << lecturerNo << " " << slot << endl;
 			if (x.second != 1) {
 				fit += x.second;
 			}
@@ -393,13 +387,14 @@ private:
 			for (int m=0; m<lecturers.size(); m++) {
 				for (int n=0; n<8; n++) {
 					int slot = i*8 + n;
-					//if the lecturer teaches that course
-					if ( solution[m][slot] != -1 && preference[m][slot] != 0 ) {
-						//different error codes
-						int code = -1;
+					//error code
+					int code = 0;
 
-						//error case 1: 2 consecutive courses are not the same
+					//case 1: the course is taught at a busy session (preference = 0)
+					if ( solution[m][slot] != -1 &&  preference[m][slot] == 0 ) {
+						code = 1;
 					}
+
 				}
 			}
 		}
@@ -469,20 +464,21 @@ public:
 				break;
 			}
 
+			// //mvoe the bad results
+			// cout << "\e[36mBAD_CELL FUNCTION\e[0m" << endl; 
+			// badCell(rooms, courses, hours, lecturers, binaryMapping, preference);
+			// printData();
 
-			//mvoe the bad results
-			cout << "\e[36mBAD_CELL FUNCTION\e[0m" << endl; 
-			badCell(rooms, courses, hours, lecturers, binaryMapping, preference);
-			printData();
+			// //output the xml file
+			// if (fit < copyFit) output();
 
-			//output the xml file
-			if (fit < copyFit) output();
-
-			//stop the algorithm once you can't improve it anymore
-			if (fit == 0) {
-				break;
-			}
-		
+			// //stop the algorithm once you can't improve it anymore
+			// if (fit == 0) {
+			// 	break;
+			// }
+			int temp;
+			cin >> temp;
+			cout.flush();
 		}
 
 
