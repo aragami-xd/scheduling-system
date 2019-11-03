@@ -6,8 +6,8 @@ all: Schedule.hpp main.cpp
 #ucs files will be added later when they're fixed
 #pretty confident that the program will run pretty fast so just stop it after 1 seconds (might be changed)
 #some intput will cause an infinite loop anyways
-test: Schedule.hpp main.cpp
-	g++ Schedule.hpp main.cpp
+test: Schedule.hpp EvalUCS.h EvalUCS.cpp Solution.h Solution.cpp main.cpp
+	g++ Schedule.hpp EvalUCS.h EvalUCS.cpp Solution.h Solution.cpp main.cpp
 	./a.out
 	more solution.xml
 
