@@ -1,6 +1,6 @@
 #compile the program without the UCS files
-all: Schedule.hpp main.cpp
-	g++ Schedule.hpp main.cpp
+all: Schedule.hpp EvalUCS.h EvalUCS.cpp Solution.h Solution.cpp main.cpp
+	g++ Schedule.hpp EvalUCS.h EvalUCS.cpp Solution.h Solution.cpp main.cpp
 
 #compile the program and run it
 #ucs files will be added later when they're fixed
@@ -9,7 +9,6 @@ all: Schedule.hpp main.cpp
 test: Schedule.hpp EvalUCS.h EvalUCS.cpp Solution.h Solution.cpp main.cpp
 	g++ Schedule.hpp EvalUCS.h EvalUCS.cpp Solution.h Solution.cpp main.cpp
 	./a.out
-	more solution.xml
 
 #clean the gch file, a.out file and the solution
 clean:
