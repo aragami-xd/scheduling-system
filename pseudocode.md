@@ -146,3 +146,18 @@ so after having the ascendingly sorted preference score vector, i'll try to exte
 
 
 so i think the code works now. i have managed to generate a solution, though it's not a viable solution. during the swap or the relocate function, i have messed up the initial solution somehow. but, it looks like this algorithm will be able to give me a correct final solution
+
+
+
+
+generate an initial solution
+go from the start to the end, move every bad solution to:
+- the best place it can move to then move all of the invalid coureses away but way too complex
+- a valid place but may not be able to find one
+
+
+everything need to take in consideration when move a cell:
+- room count that day
+- the course has been taught that day or not
+- the lecturer has taught that day or not, if not, they cannot teach 2 hour session after it -> move that course away
+- is there any courses before and after it or not, if yes then you'll have to move both of them away

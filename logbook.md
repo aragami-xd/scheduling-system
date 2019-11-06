@@ -47,3 +47,5 @@ i'll create an initial solution. this can be easily done iteratively through a b
 moving to another slot somehow, i'm still working on it, but for now this seems to be a good strategy for me
 
 (i realize that this sounds pretty much like greedy algorithm)
+
+
