@@ -33,7 +33,11 @@ private:
 	//tuple <preference, courseNo, hour of the week, lecturerNo>
 	vector< tuple<int,int,int,int> > preferenceScore;
 
+	//fit score
+	double fit, copyFit;
+
 	//all the other data
+	ProblemUCS data;
 	int rooms;
 	int mC;
 	vector<int> cHours;
@@ -70,7 +74,7 @@ private:
 								m++;
 								//if the next hour is not busy, still have time in the course, room to teach and the lecturer has not taught that day
 								//the twoHour violation seems really weird right now, so i'll comment it out for the time being
-								if ( LP[i][m] != 0 && cHours[n] > 0 && roomCount[m] > 0 /*&& !twoHour[i]*/ ) {
+								if ( LP[i][m] != 0 && cHours[n] > 0 && roomCount[m] > 0 && !twoHour[i]) {
 									cHours[n]--;
 									roomCount[m]--;
 									preferenceScore.push_back( {LP[i][m],n,m,i} );
@@ -94,19 +98,12 @@ private:
 			}
 		}
 
-		// //see how many hours have not bee alocated for each course (missing hours)
-		// cout << endl;
-		// for (int i=0; i<mC; i++) {
-		// 	//allocate each hour of that course into the solution one by one
-		// 	while (cHours[i] > 0) {
-		// 		insertRemaining(i);
-		// 	}
-		// }
-
+		//see how many hours have not bee alocated for each course (missing hours)
 		cout << endl;
 		for (int i=0; i<mC; i++) {
-			if (cHours[i] > 0) {
-				cout << "course \e[32m" << i << "\e[0m has \e[32m" << cHours[i] << "\e[0m left" << endl; 
+			//allocate each hour of that course into the solution one by one
+			while (cHours[i] > 0) {
+				insertRemaining(i);
 			}
 		}
 
@@ -178,7 +175,7 @@ private:
 	void improve()
 	{
 		for (int i=0; i<preferenceScore.size(); i++) {
-			if ( get<0>(preferenceScore[i]) != 1 ) relocate(preferenceScore[i], i);
+			if ( get<0>(preferenceScore[i]) > 1 ) relocate(preferenceScore[i], i);
 		}
 	}
 
@@ -191,7 +188,7 @@ private:
 	{
 		//cout << "call relocate function" << endl;
 		//best hold the location of the best cell in the solution (the place it will move to) and bestScore hold the preference at that location
-		tuple<int,int,int,int> best = {-1,-1,-1,-1};
+		tuple<int,int,int,int> best = {-1,-1,-1,-1}, overlap = {-1,-1,-1,-1};
 		int bestScore = 6;
 
 		//loop through every lecturer and see if they teach that course or not
@@ -201,14 +198,19 @@ private:
 				for (int m=0; m<40; m++) {
 					//if that cell is better than the previous cell then change the best cell and the cell must be empty
 					//"hard constraints"
-					if ( debug[get<3>(cell)][m] == -1 && LP[i][m] < bestScore && LP[i][m] > 0 ) {
+					if ( debug[i][m] == -1 && LP[i][m] < bestScore && LP[i][m] > 0 ) {
 						//"soft constraints"
 						//no course is taught before and after this course
 						//there are enough rooms (this one might be deleted later)
-						//the new cell is either in the same day as the current cell (argument)
-						if ( (m%8==0 || debug[i][m-1] == -1) && (m%8==7 || debug[i][m+1] == -1) && roomCount[m] > 0 && courseDay[get<1>(cell)][div(m,8).quot] == false ) {
+						if ( (m%8==0 || debug[i][m-1] == -1) && (m%8==7 || debug[i][m+1] == -1) && /*roomCount[m] > 0*/ && courseDay[get<1>(cell)][div(m,8).quot] == false ) {
 							bestScore = LP[i][m];
 							best = {bestScore, get<1>(cell), m,i};
+
+							if (debug[i][m] != -1) {
+								overlap = {bestScore, debug[i][m], m,i};
+							} else {
+								overlap = {-1,-1,-1,-1};
+							}
 						}
 
 					}
@@ -224,69 +226,90 @@ private:
 			return ;
 		}
 
-		//delete the previous cell
+		// if (get<0>(overlap) != -1) {
+		// 	for (int i=0; i<preferenceScore.size(); i++) {
+		// 		if (preferenceScore[i] == overlap) {
+		// 			cout << "overlap" << endl;
+		// 			relocate(overlap, i);
+		// 			break;
+		// 		}
+		// 	}
+		// }
+
+		//temporary change the solution to test it
 		solution[get<1>(cell)][get<2>(cell)] = -1;
-		debug[get<3>(cell)][get<2>(cell)] = -1;
-		courseDay[get<1>(cell)][div(get<2>(cell), 8).quot] = false;
-		roomCount[get<2>(cell)]--;
-
-		//add the best cell in
 		solution[get<1>(best)][get<2>(best)] = get<3>(best);
-		debug[get<3>(best)][get<2>(best)] = get<1>(best);
-		courseDay[get<1>(best)][div(get<2>(best), 8).quot] = true;
-		roomCount[get<2>(best)]++;
 
-		//modify the preferenceScore
-		preferenceScore[index] = best;
+		//see if solution is viable or not (violate constraints or not)
+		if (Solution::checkConstraints(solution, rooms, cHours, LP, cNames, lNames) == 0) {
+			//if not, go for it
+			//delete previous cell
+			debug[get<3>(cell)][get<2>(cell)] = -1;
+			courseDay[get<1>(cell)][div(get<2>(cell), 8).quot] = false;
+			roomCount[get<2>(cell)]--;
 
-		//in case room count constraint is not checked, this function will responsible for it
-		//note: not working so well at the moment
-		//validateRoom(best);
+			//add the best cell in
+			debug[get<3>(best)][get<2>(best)] = get<1>(best);
+			courseDay[get<1>(best)][div(get<2>(best), 8).quot] = true;
+			roomCount[get<2>(best)]++;
+
+			//modify the preferenceScore
+			preferenceScore[index] = best;
+		} else {
+			//revert if solution is not valid
+			solution[get<1>(cell)][get<2>(cell)] = get<3>(cell);
+			solution[get<1>(best)][get<2>(best)] = -1;
+		}
 	}
 
 
 
-	//this function will check and see if there is enough room or not, if not, move the worst cell away to a better place
-	//again, tuple <prefenceScore, courseNo, location in debug, lecturerNo>
-	// void validateRoom(tuple<int,int,int,int> cell)
-	// {
-	// 	//this vector will hold the preference at each 
-	// 	vector<int> occupied(nL);
+	// this function will check and see if there is enough room or not, if not, move the worst cell away to a better place
+	// again, tuple <prefenceScore, courseNo, location in debug, lecturerNo>
+	void validateRoom(tuple<int,int,int,int> cell)
+	{
+		//this vector will hold the preference at each 
+		vector<int> occupied(nL);
 
-	// 	//see how many rooms are occupied
-	// 	for (int i=0; i<LP.size(); i++) {
-	// 		occupied.push_back( LP[i][get<2>(cell)] );
-	// 	}
+		//see how many rooms are occupied
+		for (int i=0; i<LP.size(); i++) {
+			occupied.push_back( LP[i][get<2>(cell)] );
+		}
 
-	// 	//if there are still enough rooms
-	// 	if (occupied.size() <= rooms) {
-	// 		return ;
-	// 	}
+		//if there are still enough rooms
+		if (occupied.size() <= rooms) {
+			return ;
+		}
 
-	// 	//else, call the relocate function
-	// 	int bestCell = *max_element(occupied.begin(), occupied.end());
-	// 	tuple<int,int,int,int> best = {occupied[bestCell], debug[bestCell][get<2>(cell)], get<2>(cell), bestCell};
+		//else, call the relocate function
+		int bestCell = *max_element(occupied.begin(), occupied.end());
+		tuple<int,int,int,int> best = {occupied[bestCell], debug[bestCell][get<2>(cell)], get<2>(cell), bestCell};
 
-	// 	//see which cell is that cell in the preferenceList
-	// 	for (int i=0; i<preferenceScore.size(); i++) {
-	// 		if (best == preferenceScore[i]) {
-	// 			relocate(best, i);
-	// 			return;
-	// 		}
-	// 	}
+		//see which cell is that cell in the preferenceList
+		for (int i=0; i<preferenceScore.size(); i++) {
+			if (best == preferenceScore[i]) {
+				relocate(best, i);
+				return;
+			}
+		}
 
-	// }
-
-
+	}
 
 
 public:
 	void generate()
 	{
+		//reset data, just in case
+		roomCount.clear();
+		solution.clear();
+		debug.clear();
+		courseDay.clear();
+		twoHour.clear();
+
 		//get the data
-		ProblemUCS data;
-		if ( !data.readUCSInstance("simple1.ucs") ) {
-			cout << "oof" << endl;	//cannot read the file
+		if ( !data.readUCSInstance("medium2.ucs") ) {
+			//cannot read the file
+			cout << "oof" << endl;	
 			return ;
 		}
 		rooms = data.rooms;
@@ -339,24 +362,15 @@ public:
 			twoHour.push_back(false);
 		}
 
+		//set the initial fit value
+		fit = 100;
+		copyFit = 100;
 
 		//the initial solution
 		initialSolution();
 
-		//print the debug vector
-		cout << endl;
-		cout << "debug" << endl;
-		for (int i=0; i<debug.size(); i++) {
-			for (int m=0; m<40; m++) {
-				if (debug[i][m] != -1) cout << "\e[32m ";
-				cout << debug[i][m] << " \e[0m";
-				if (m%8==7) cout << "  ";
-			}
-			cout << endl;
-		}
-
-		//improve the solution (5 times)
-		for (int i=0; i<5; i++) improve();
+		//improve the solution
+		for (int i=0; i<20; i++) improve();
 
 
 		//print the solution vector
@@ -398,7 +412,7 @@ public:
 		//test the data
 		cout << endl;
 		Solution::printTimetable(solution, cNames, lNames);
-		double fit = Solution::getFitnessValue(solution, mC, LP, cHours, Solution::checkConstraints(solution, rooms, cHours, LP, cNames, lNames) );
+		fit = Solution::getFitnessValue(solution, mC, LP, data.cHours, Solution::checkConstraints(solution, rooms, cHours, LP, cNames, lNames));
 		cout << endl;
 		cout << "fit: " << fit << endl;
 		return ;

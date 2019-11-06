@@ -17,4 +17,4 @@ Solution.o: Solution.h Solution.cpp
 
 #clean the gch file, a.out file and the solution
 clean:
-	rm *.gch *.o a.out 
+	rm *.gch *.o *.hpp.gch a.out 
