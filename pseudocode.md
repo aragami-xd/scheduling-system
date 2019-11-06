@@ -161,3 +161,11 @@ everything need to take in consideration when move a cell:
 - the course has been taught that day or not
 - the lecturer has taught that day or not, if not, they cannot teach 2 hour session after it -> move that course away
 - is there any courses before and after it or not, if yes then you'll have to move both of them away
+
+
+
+- insertRemaining:
+- loop through every lecturer, every hour of the week. if the lecturer can teach the course at that time then insert it in
+- move one cell away
+- note: might have to set a flag that the cell cannot be moved anywhere, which shouldn't happen since it can always move back to it's own place
+- anyways: 

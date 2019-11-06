@@ -48,9 +48,6 @@ private:
 	//generate an initial solution
 	void initialSolution()
 	{
-		//make a copy of the cHours
-		vector<int> cHoursCopy = cHours;
-
 		//loop through all the lecturers and every hour of the week
 		for (int i=0; i<nL; i++) {
 			for (int m=0; m<40; m++) {
@@ -59,9 +56,9 @@ private:
 					for (int n=0; n<mC; n++) {
 						//if the lecturer teaches that course, the course has not been taught that day
 						//the course still has hours left to be taught and there are rooms available
-						if ( TL[n][i] == 1 && !courseDay[n][div(m,8).quot] && cHoursCopy[n] > 0 && roomCount[m] > 0 ) {
+						if ( TL[n][i] == 1 && !courseDay[n][div(m,8).quot] && cHours[n] > 0 && roomCount[m] > 0 ) {
 							//change the data
-							cHoursCopy[n]--;
+							cHours[n]--;
 							roomCount[m]--;
 							courseDay[n][div(m,8).quot] = true;
 							preferenceScore.push_back( {LP[i][m],n,m,i} );
@@ -72,8 +69,9 @@ private:
 							if ( m%8 < 7 ) {
 								m++;
 								//if the next hour is not busy, still have time in the course, room to teach and the lecturer has not taught that day
-								if ( LP[i][m] != 0 && cHoursCopy[n] > 0 && roomCount[m] > 0 /*&& !twoHour[i]*/ ) {
-									cHoursCopy[n]--;
+								//the twoHour violation seems really weird right now, so i'll comment it out for the time being
+								if ( LP[i][m] != 0 && cHours[n] > 0 && roomCount[m] > 0 /*&& !twoHour[i]*/ ) {
+									cHours[n]--;
 									roomCount[m]--;
 									preferenceScore.push_back( {LP[i][m],n,m,i} );
 									solution[n][m] = i;
@@ -96,10 +94,20 @@ private:
 			}
 		}
 
-		//see how many hours have not bee alocated for each course
+		// //see how many hours have not bee alocated for each course (missing hours)
+		// cout << endl;
+		// for (int i=0; i<mC; i++) {
+		// 	//allocate each hour of that course into the solution one by one
+		// 	while (cHours[i] > 0) {
+		// 		insertRemaining(i);
+		// 	}
+		// }
+
 		cout << endl;
 		for (int i=0; i<mC; i++) {
-			if (cHoursCopy[i] > 0) cout << "course \e[32m" << i << "\e[0m has \e[32m" << cHoursCopy[i] << "\e[0m left" << endl; 
+			if (cHours[i] > 0) {
+				cout << "course \e[32m" << i << "\e[0m has \e[32m" << cHours[i] << "\e[0m left" << endl; 
+			}
 		}
 
 		return ;
@@ -107,13 +115,62 @@ private:
 
 
 	
-	//this function will fill in the remaining hours that intial solution cannot fill in, if any
-	void validateInitial(vector<int> remaining)
+	//this function will fill in the remaining hours that initial solution cannot fill in, to the first place it can find then relocate any cell if necessary to make room for it
+	void insertRemaining(int courseNo)
 	{
-		for (int i=0; i<remaining.size(); i++) {
+		//this tuple will hold the detail of the cell to be moved (if any)
+		tuple<int,int,int,int> cell;
+		//index stores the index of the new inserted course in the debug vector
+		int index = 0;
+		//preference of the worst cell and where is that cell
+		int worstScore = -1;
+		int worst = -1;
 
+		//loop htrough every lecturer to see if the lecturer teaches that course or not
+		for (int i=0; i<nL; i++) {
+			if (TL[courseNo][i] == 1) {
+				//loop every hour of the week to see when the lecturer can teach that course
+				for (int m=0; m<40; m++) {
+					//constraints:
+					//the lecturer is free in that session, there is no course being taught at that moment, before and after it
+					//the course has not been taught that day
+					if ( LP[i][m] > 0 && debug[i][m] == -1 && (m%8==0 || debug[i][m-1] == -1) && (m%8==7 || debug[i][m+1] == -1) && courseDay[courseNo][div(m,8).quot] == false) {
+						//insert this cell into the solution then find the worst cell to be moved away
+						preferenceScore.push_back( {LP[i][m], courseNo, m, i} );
+						roomCount[m]--;
+						cHours[courseNo]--;
+						solution[courseNo][m] = i;
+						debug[i][m] = courseNo;
+						courseDay[courseNo][div(m,8).quot] = true;
+						//the index of where the course is saved
+						index = m;
+						break;
+					}
+
+				}
+			}
 		}
+		
+		//find the worst cell to relocate
+		for (int i=0; i<nL; i++) {
+			if (LP[i][index] > worstScore) {
+				worstScore = LP[i][index];
+				worst = i;
+			}
+		}
+		
+		//find where is that worst cell then move it
+		cell = {worstScore, debug[worst][index], index, worst};
+		for (int i=0; i<preferenceScore.size(); i++) {
+			if (cell == preferenceScore[i]) {
+				relocate(cell, i);
+			}
+		}
+
+		return ;
 	}
+
+
 
 
 
@@ -228,7 +285,7 @@ public:
 	{
 		//get the data
 		ProblemUCS data;
-		if ( !data.readUCSInstance("medium1.ucs") ) {
+		if ( !data.readUCSInstance("simple1.ucs") ) {
 			cout << "oof" << endl;	//cannot read the file
 			return ;
 		}
@@ -285,6 +342,18 @@ public:
 
 		//the initial solution
 		initialSolution();
+
+		//print the debug vector
+		cout << endl;
+		cout << "debug" << endl;
+		for (int i=0; i<debug.size(); i++) {
+			for (int m=0; m<40; m++) {
+				if (debug[i][m] != -1) cout << "\e[32m ";
+				cout << debug[i][m] << " \e[0m";
+				if (m%8==7) cout << "  ";
+			}
+			cout << endl;
+		}
 
 		//improve the solution (5 times)
 		for (int i=0; i<5; i++) improve();
