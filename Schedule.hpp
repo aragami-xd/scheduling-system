@@ -202,7 +202,7 @@ private:
 						//"soft constraints"
 						//no course is taught before and after this course
 						//there are enough rooms (this one might be deleted later)
-						if ( (m%8==0 || debug[i][m-1] == -1) && (m%8==7 || debug[i][m+1] == -1) && /*roomCount[m] > 0*/ && courseDay[get<1>(cell)][div(m,8).quot] == false ) {
+						if ( (m%8==0 || debug[i][m-1] == -1) && (m%8==7 || debug[i][m+1] == -1) && /*roomCount[m] > 0 &&*/ courseDay[get<1>(cell)][div(m,8).quot] == false ) {
 							bestScore = LP[i][m];
 							best = {bestScore, get<1>(cell), m,i};
 
@@ -226,39 +226,53 @@ private:
 			return ;
 		}
 
-		// if (get<0>(overlap) != -1) {
-		// 	for (int i=0; i<preferenceScore.size(); i++) {
-		// 		if (preferenceScore[i] == overlap) {
-		// 			cout << "overlap" << endl;
-		// 			relocate(overlap, i);
-		// 			break;
-		// 		}
-		// 	}
-		// }
+		if (get<0>(overlap) != -1) {
+			for (int i=0; i<preferenceScore.size(); i++) {
+				if (preferenceScore[i] == overlap) {
+					relocate(overlap, i);
+					break;
+				}
+			}
+		}
 
 		//temporary change the solution to test it
 		solution[get<1>(cell)][get<2>(cell)] = -1;
+					debug[get<3>(cell)][get<2>(cell)] = -1;
+			courseDay[get<1>(cell)][div(get<2>(cell), 8).quot] = false;
+			roomCount[get<2>(cell)]--;
+
 		solution[get<1>(best)][get<2>(best)] = get<3>(best);
+					debug[get<3>(best)][get<2>(best)] = get<1>(best);
+			courseDay[get<1>(best)][div(get<2>(best), 8).quot] = true;
+			roomCount[get<2>(best)]++;
+
+			preferenceScore[index] = best;
+			validateRoom(best);
 
 		//see if solution is viable or not (violate constraints or not)
 		if (Solution::checkConstraints(solution, rooms, cHours, LP, cNames, lNames) == 0) {
 			//if not, go for it
 			//delete previous cell
-			debug[get<3>(cell)][get<2>(cell)] = -1;
-			courseDay[get<1>(cell)][div(get<2>(cell), 8).quot] = false;
-			roomCount[get<2>(cell)]--;
+
 
 			//add the best cell in
-			debug[get<3>(best)][get<2>(best)] = get<1>(best);
-			courseDay[get<1>(best)][div(get<2>(best), 8).quot] = true;
-			roomCount[get<2>(best)]++;
+
 
 			//modify the preferenceScore
-			preferenceScore[index] = best;
+			
 		} else {
 			//revert if solution is not valid
-			solution[get<1>(cell)][get<2>(cell)] = get<3>(cell);
-			solution[get<1>(best)][get<2>(best)] = -1;
+		solution[get<1>(cell)][get<2>(cell)] = get<3>(cell);
+					debug[get<3>(cell)][get<2>(cell)] = get<1>(cell);
+			courseDay[get<1>(cell)][div(get<2>(cell), 8).quot] = true;
+			roomCount[get<2>(cell)]++;
+
+		solution[get<1>(best)][get<2>(best)] = -1;
+					debug[get<3>(best)][get<2>(best)] = -1;
+			courseDay[get<1>(best)][div(get<2>(best), 8).quot] = false;
+			roomCount[get<2>(best)]--;
+
+			preferenceScore[index] = cell;
 		}
 	}
 
@@ -307,7 +321,7 @@ public:
 		twoHour.clear();
 
 		//get the data
-		if ( !data.readUCSInstance("medium2.ucs") ) {
+		if ( !data.readUCSInstance("medium1.ucs") ) {
 			//cannot read the file
 			cout << "oof" << endl;	
 			return ;
